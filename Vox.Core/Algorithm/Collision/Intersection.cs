@@ -99,7 +99,7 @@ namespace Vox.Core.Algorithm.Collision
 
             foreach (var corner in corners)
             {
-                if (!IsPointInsideMesh(corner, mesh))
+                if (!IsPointInsideMesh(corner))
                 {
                     // If any corner is outside, the node is not fully inside
                     return false;
@@ -115,28 +115,79 @@ namespace Vox.Core.Algorithm.Collision
             return true;
         }
 
-        private bool IsPointInsideMesh(PVector3d point, PMesh mesh)
+        private bool IsPointInsideMesh(PVector3d point)
         {
-            // ray direction; ensure it's not aligned with any mesh edges
+            // Use a ray casting method optimized with BVH
             PVector3d rayDirection = new PVector3d(1, 0.5, 0.25); // Arbitrary direction
-
-            int intersections = 0;
-
-            foreach (var face in mesh.Faces)
-            {
-                var v0 = mesh.Vertices[face[0]];
-                var v1 = mesh.Vertices[face[1]];
-                var v2 = mesh.Vertices[face[2]];
-
-                if (RayIntersectsTriangle(point, rayDirection, v0, v1, v2))
-                {
-                    intersections++;
-                }
-            }
+            int intersections = CountRayIntersections(point, rayDirection, _bvh.Root);
 
             // Point is inside if intersections are odd
             return (intersections % 2) == 1;
         }
+
+        private int CountRayIntersections(PVector3d rayOrigin, PVector3d rayDirection, BVHNode bvhNode)
+        {
+            if (!RayIntersectsAABB(rayOrigin, rayDirection, bvhNode.Bounds))
+                return 0;
+
+            if (bvhNode.IsLeaf)
+            {
+                int count = 0;
+                foreach (int idx in bvhNode.TriangleIndices)
+                {
+                    var face = _bvh.Mesh.Faces[idx];
+                    var v0 = _bvh.Mesh.Vertices[face[0]];
+                    var v1 = _bvh.Mesh.Vertices[face[1]];
+                    var v2 = _bvh.Mesh.Vertices[face[2]];
+
+                    if (RayIntersectsTriangle(rayOrigin, rayDirection, v0, v1, v2))
+                    {
+                        count++;
+                    }
+                }
+                return count;
+            }
+            else
+            {
+                return CountRayIntersections(rayOrigin, rayDirection, bvhNode.Left) +
+                       CountRayIntersections(rayOrigin, rayDirection, bvhNode.Right);
+            }
+        }
+
+        private bool RayIntersectsAABB(PVector3d rayOrigin, PVector3d rayDirection, PBoundingBox aabb)
+        {
+            // Implement the slab method for ray-AABB intersection
+            double tmin = (aabb.Min.X - rayOrigin.X) / rayDirection.X;
+            double tmax = (aabb.Max.X - rayOrigin.X) / rayDirection.X;
+            if (tmin > tmax) Swap(ref tmin, ref tmax);
+
+            double tymin = (aabb.Min.Y - rayOrigin.Y) / rayDirection.Y;
+            double tymax = (aabb.Max.Y - rayOrigin.Y) / rayDirection.Y;
+            if (tymin > tymax) Swap(ref tymin, ref tymax);
+
+            if ((tmin > tymax) || (tymin > tmax))
+                return false;
+
+            if (tymin > tmin)
+                tmin = tymin;
+            if (tymax < tmax)
+                tmax = tymax;
+
+            double tzmin = (aabb.Min.Z - rayOrigin.Z) / rayDirection.Z;
+            double tzmax = (aabb.Max.Z - rayOrigin.Z) / rayDirection.Z;
+            if (tzmin > tzmax) Swap(ref tzmin, ref tzmax);
+
+            if ((tmin > tzmax) || (tzmin > tmax))
+                return false;
+
+            return true;
+        }
+
+        private void Swap(ref double a, ref double b)
+        {
+            (a, b) = (b, a);
+        }
+
 
         private bool RayIntersectsTriangle(
             PVector3d rayOrigin,

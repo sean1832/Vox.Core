@@ -45,20 +45,10 @@ namespace Vox.Core.Algorithm.BVH
                 return node;
             }
 
-            // Find the best axis and position to split using SAH
+            // Initialize variables for SAH
             int bestAxis = -1;
             double bestCost = double.PositiveInfinity;
             int bestSplitIndex = -1;
-
-            // Set a minimum improvement threshold for splitting
-            const double minSplitImprovement = 0.05;
-
-            // If no significant improvement in cost, return a leaf node
-            if (bestCost > (1.0 + minSplitImprovement) * triangleIndices.Count)
-            {
-                node.TriangleIndices = triangleIndices.ToArray();
-                return node;
-            }
 
             // Initialize buckets
             var buckets = new BucketInfo[_numBucket, 3]; // 3 axes
@@ -86,12 +76,16 @@ namespace Vox.Core.Algorithm.BVH
                 foreach (var idx in triangleIndices)
                 {
                     double centroid = GetTriangleCentroid(idx, axis);
-                    int bucketIndex = (int)(_numBucket * ((centroid - centroidBounds.Min.ToArray()[axis]) / (centroidBounds.Max.ToArray()[axis] - centroidBounds.Min.ToArray()[axis])));
+                    double minCentroid = centroidBounds.Min.ToArray()[axis];
+                    double maxCentroid = centroidBounds.Max.ToArray()[axis];
+                    double range = maxCentroid - minCentroid;
 
-                    // Clamp the bucketIndex to make sure it is within the bounds of [0, numBuckets - 1]
+                    // Avoid division by zero
+                    if (range == 0) range = 1e-6;
+
+                    int bucketIndex = (int)(_numBucket * ((centroid - minCentroid) / range));
                     bucketIndex = Math.Max(0, Math.Min(bucketIndex, _numBucket - 1));
 
-                    // Now safely add the triangle index to the bucket
                     buckets[bucketIndex, axis].Triangles.Add(idx);
                     buckets[bucketIndex, axis].Bounds.Expand(Mesh.TriangleBounds[idx]);
                 }
@@ -130,9 +124,12 @@ namespace Vox.Core.Algorithm.BVH
                 }
             }
 
-            if (bestAxis == -1)
+            // Now that bestCost is computed, check if splitting is beneficial
+            const double minSplitImprovement = 0.05;
+
+            // If no significant improvement in cost, return a leaf node
+            if (bestCost >= triangleIndices.Count || bestAxis == -1)
             {
-                // Cannot find a good split, create a leaf node
                 node.TriangleIndices = triangleIndices.ToArray();
                 return node;
             }
