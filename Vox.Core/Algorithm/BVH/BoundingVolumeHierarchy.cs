@@ -5,79 +5,202 @@ using Vox.Core.DataModels;
 
 namespace Vox.Core.Algorithm.BVH
 {
-    internal class BoundingVolumeHierarchy
+    public class BoundingVolumeHierarchy
     {
-        private readonly PMesh _mesh;
-        public BoundingVolumeHierarchy(PMesh mesh)
+        public readonly PMesh Mesh;
+        private readonly int _maxTrianglesPerLeaf;
+        private readonly int _numBucket;
+        public BVHNode Root { get; private set; }
+
+        public BoundingVolumeHierarchy(PMesh mesh, int maxTrianglesPerLeaf = 8, int numBucket = 4)
         {
-            _mesh = mesh;
+            Mesh = mesh;
+            _numBucket = numBucket;
+            _maxTrianglesPerLeaf = maxTrianglesPerLeaf;
+            var allTriangleIndices = GetAllTriangleIndices();
+            Root = BuildRecursive(allTriangleIndices);
         }
 
-        public List<int> GetAllTriangleIndices()
+        private List<int> GetAllTriangleIndices()
         {
-            var allTriangleIndices = new List<int>();
-            for (int i = 0; i < _mesh.Faces.Count; i++)
+            int triangleCount = Mesh.Faces.Count;
+            var indices = new List<int>(triangleCount);
+            for (int i = 0; i < triangleCount; i++)
             {
-                allTriangleIndices.Add(i);
+                indices.Add(i);
             }
-
-            return allTriangleIndices;
+            return indices;
         }
 
-        public BVHNode BuildRecursive(List<int> triangleIndices)
+        private BVHNode BuildRecursive(List<int> triangleIndices)
         {
+            // Create a new node and compute its bounding box
             var node = new BVHNode();
-            
-            // compute bounding box of this node
             node.Bounds = ComputeBounds(triangleIndices);
 
-            if (triangleIndices.Count <= 4)
+            // If the number of triangles is below the threshold, make a leaf node
+            if (triangleIndices.Count <= _maxTrianglesPerLeaf)
             {
-                // leaf node
-                node.TriangleIndices = triangleIndices;
+                node.TriangleIndices = triangleIndices.ToArray();
                 return node;
             }
 
-            // determine axis to split
-            int axis = node.Bounds.GetLongestAxis();
+            // Find the best axis and position to split using SAH
+            int bestAxis = -1;
+            double bestCost = double.PositiveInfinity;
+            int bestSplitIndex = -1;
 
-            // sort triangles along the axis
-            triangleIndices.Sort((a, b) =>
+            // Set a minimum improvement threshold for splitting
+            const double minSplitImprovement = 0.05;
+
+            // If no significant improvement in cost, return a leaf node
+            if (bestCost > (1.0 + minSplitImprovement) * triangleIndices.Count)
             {
-                double centerA = GetTriangleCenter(a, axis);
-                double centerB = GetTriangleCenter(b, axis);
-                return centerA.CompareTo(centerB);
-            });
+                node.TriangleIndices = triangleIndices.ToArray();
+                return node;
+            }
 
-            // split the triangles into two groups
-            int mid = triangleIndices.Count / 2;
-            var leftTriangles = triangleIndices.GetRange(0, mid);
-            var rightTriangles = triangleIndices.GetRange(mid, triangleIndices.Count - mid);
+            // Initialize buckets
+            var buckets = new BucketInfo[_numBucket, 3]; // 3 axes
 
-            // recursively build left and right children
-            node.Left = BuildRecursive(leftTriangles);
-            node.Right = BuildRecursive(rightTriangles);
+            // Compute centroid bounds
+            var centroidBounds = ComputeCentroidBounds(triangleIndices);
+
+            if (centroidBounds.IsDegenerate())
+            {
+                // All centroids are the same, create a leaf node
+                node.TriangleIndices = triangleIndices.ToArray();
+                return node;
+            }
+
+            // For each axis
+            for (int axis = 0; axis < 3; axis++)
+            {
+                // Initialize buckets
+                for (int i = 0; i < _numBucket; i++)
+                {
+                    buckets[i, axis] = new BucketInfo();
+                }
+
+                // Place triangles into buckets
+                foreach (var idx in triangleIndices)
+                {
+                    double centroid = GetTriangleCentroid(idx, axis);
+                    int bucketIndex = (int)(_numBucket * ((centroid - centroidBounds.Min.ToArray()[axis]) / (centroidBounds.Max.ToArray()[axis] - centroidBounds.Min.ToArray()[axis])));
+
+                    // Clamp the bucketIndex to make sure it is within the bounds of [0, numBuckets - 1]
+                    bucketIndex = Math.Max(0, Math.Min(bucketIndex, _numBucket - 1));
+
+                    // Now safely add the triangle index to the bucket
+                    buckets[bucketIndex, axis].Triangles.Add(idx);
+                    buckets[bucketIndex, axis].Bounds.Expand(Mesh.TriangleBounds[idx]);
+                }
+
+                // Compute costs for splitting after each bucket
+                for (int i = 1; i < _numBucket; i++)
+                {
+                    // Left side
+                    var leftBounds = new PBoundingBox();
+                    int leftCount = 0;
+                    for (int j = 0; j < i; j++)
+                    {
+                        leftBounds.Expand(buckets[j, axis].Bounds);
+                        leftCount += buckets[j, axis].Triangles.Count;
+                    }
+
+                    // Right side
+                    var rightBounds = new PBoundingBox();
+                    int rightCount = 0;
+                    for (int j = i; j < _numBucket; j++)
+                    {
+                        rightBounds.Expand(buckets[j, axis].Bounds);
+                        rightCount += buckets[j, axis].Triangles.Count;
+                    }
+
+                    // Compute cost
+                    double cost = 1 + (leftCount * leftBounds.SurfaceArea() + rightCount * rightBounds.SurfaceArea()) / node.Bounds.SurfaceArea();
+
+                    // Update best split
+                    if (cost < bestCost)
+                    {
+                        bestCost = cost;
+                        bestAxis = axis;
+                        bestSplitIndex = i;
+                    }
+                }
+            }
+
+            if (bestAxis == -1)
+            {
+                // Cannot find a good split, create a leaf node
+                node.TriangleIndices = triangleIndices.ToArray();
+                return node;
+            }
+
+            // Partition triangles into left and right sets
+            var leftIndices = new List<int>();
+            var rightIndices = new List<int>();
+            for (int i = 0; i < _numBucket; i++)
+            {
+                var bucket = buckets[i, bestAxis];
+                if (i < bestSplitIndex)
+                {
+                    leftIndices.AddRange(bucket.Triangles);
+                }
+                else
+                {
+                    rightIndices.AddRange(bucket.Triangles);
+                }
+            }
+
+            // Recursively build child nodes
+            node.Left = BuildRecursive(leftIndices);
+            node.Right = BuildRecursive(rightIndices);
 
             return node;
         }
 
         private PBoundingBox ComputeBounds(List<int> triangleIndices)
         {
-            PBoundingBox bounds = new PBoundingBox();
-
+            var bounds = new PBoundingBox();
             foreach (int idx in triangleIndices)
             {
-                var triangleBounds = _mesh.TriangleBounds[idx];
-                bounds.Expand(triangleBounds);
+                bounds.Expand(Mesh.TriangleBounds[idx]);
             }
             return bounds;
         }
 
-        private double GetTriangleCenter(int triangleIndex, int axis)
+        private PBoundingBox ComputeCentroidBounds(List<int> triangleIndices)
         {
-            PBoundingBox bounds = _mesh.TriangleBounds[triangleIndex];
-            return (bounds.Min.ToArray()[axis] + bounds.Max.ToArray()[axis]) * 0.5;
+            var bounds = new PBoundingBox();
+            foreach (int idx in triangleIndices)
+            {
+                var centroid = GetTriangleCentroidPoint(idx);
+                bounds.Expand(centroid);
+            }
+            return bounds;
         }
 
+        private PVector3d GetTriangleCentroidPoint(int triangleIndex)
+        {
+            var face = Mesh.Faces[triangleIndex];
+            var v0 = Mesh.Vertices[face[0]];
+            var v1 = Mesh.Vertices[face[1]];
+            var v2 = Mesh.Vertices[face[2]];
+            return (v0 + v1 + v2) / 3.0;
+        }
+
+        private double GetTriangleCentroid(int triangleIndex, int axis)
+        {
+            var centroid = GetTriangleCentroidPoint(triangleIndex);
+            return centroid.ToArray()[axis];
+        }
+
+        private class BucketInfo
+        {
+            public List<int> Triangles = new List<int>();
+            public PBoundingBox Bounds = new PBoundingBox();
+        }
     }
+
 }

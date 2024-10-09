@@ -16,6 +16,8 @@ namespace Vox.Core.DataModels
             TriangleBounds = new List<PBoundingBox>();
         }
 
+        public bool IsValid => Vertices.Count > 2 && Faces.Count > 0;
+
         public List<PVector3d> ClosestPoints(List<PVector3d> points, double distance)
         {
             throw new NotImplementedException();

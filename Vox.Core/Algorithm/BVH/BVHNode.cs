@@ -5,18 +5,13 @@ using Vox.Core.DataModels;
 
 namespace Vox.Core.Algorithm.BVH
 {
-    internal class BVHNode
+    public class BVHNode
     {
-        public PBoundingBox? Bounds;
-        public BVHNode? Left;
-        public BVHNode? Right;
-        public List<int>? TriangleIndices; // Indices of triangles in this leaf node
-        public BVHNode()
-        {
-            Left = null;
-            Right = null;
-            TriangleIndices = null;
-        }
-
+        public PBoundingBox Bounds;
+        public BVHNode Left;
+        public BVHNode Right;
+        public int[] TriangleIndices; // For leaf nodes
+        public bool IsLeaf => TriangleIndices != null;
     }
+
 }

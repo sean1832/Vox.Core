@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using Vox.Core.Algorithm.BVH;
 using Vox.Core.Algorithm.SVO;
 using Vox.Core.DataModels;
 
@@ -22,13 +23,45 @@ namespace Vox.Core
         /// <returns>Voxels</returns>
         public List<Voxel> VoxelizeSVO(PMesh mesh, int maxDepth, bool isSolid)
         {
-            // Calculate the mesh's bounding box, use cubic bounding box as the root node
+            mesh.ComputeTriangleBounds(); // Precompute triangle bounds
             PBoundingBox bBox = mesh.GetBoundingBox().ToCubic();
-            mesh.ComputeTriangleBounds(); // precompute triangle bounds
-
             OctreeNode rootNode = new OctreeNode(bBox);
             SparseVoxelOctree svo = new SparseVoxelOctree(maxDepth, rootNode.Bounds.Size, isSolid);
             svo.Build(rootNode, mesh);
+
+            ConcurrentBag<Voxel> voxels = new ConcurrentBag<Voxel>();
+            svo.Collect(rootNode, voxels);
+
+            //// Calculate the mesh's bounding box, use cubic bounding box as the root node
+            //PBoundingBox bBox = mesh.GetBoundingBox().ToCubic();
+            //mesh.ComputeTriangleBounds(); // precompute triangle bounds
+
+            //OctreeNode rootNode = new OctreeNode(bBox);
+            //BoundingVolumeHierarchy bvh = new BoundingVolumeHierarchy(mesh, 128);
+            //SparseVoxelOctree svo = new SparseVoxelOctree(maxDepth, rootNode.Bounds.Size, isSolid, bvh);
+            //svo.Build(rootNode, mesh);
+
+            //ConcurrentBag<Voxel> voxels = new ConcurrentBag<Voxel>();
+            //svo.Collect(rootNode, voxels);
+
+            return voxels.ToList();
+        }
+
+        /// <summary>
+        /// Voxelize the mesh using the Sparse Voxel Octree algorithm with precomputed BVH data
+        /// </summary>
+        /// <param name="bvh">Precomputed BVH data</param>
+        /// <param name="maxDepth">Maximum subdivision level (resolution)</param>
+        /// <param name="isSolid">Infill interior of a mesh</param>
+        /// <returns>Voxels</returns>
+        public List<Voxel> VoxelizeSVO(BoundingVolumeHierarchy bvh, int maxDepth, bool isSolid)
+        {
+            // Calculate the mesh's bounding box, use cubic bounding box as the root node
+            PBoundingBox bBox = bvh.Mesh.GetBoundingBox().ToCubic();
+
+            OctreeNode rootNode = new OctreeNode(bBox);
+            SparseVoxelOctree svo = new SparseVoxelOctree(maxDepth, rootNode.Bounds.Size, isSolid, bvh);
+            svo.Build(rootNode, bvh.Mesh);
 
             ConcurrentBag<Voxel> voxels = new ConcurrentBag<Voxel>();
             svo.Collect(rootNode, voxels);

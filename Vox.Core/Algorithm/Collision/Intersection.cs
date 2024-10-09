@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using Vox.Core.Algorithm.BVH;
 using Vox.Core.Algorithm.SVO;
 using Vox.Core.DataModels;
 
@@ -8,6 +9,57 @@ namespace Vox.Core.Algorithm.Collision
 {
     internal class Intersection
     {
+        private readonly BoundingVolumeHierarchy? _bvh;
+
+        public Intersection()
+        {
+        }
+
+        public Intersection(BoundingVolumeHierarchy bvh)
+        {
+            _bvh = bvh;
+        }
+
+        public bool IsNodeIntersect(PBoundingBox nodeBounds)
+        {
+            if (_bvh == null)
+            {
+                throw new InvalidOperationException($"{nameof(BoundingVolumeHierarchy)} not initialized!");
+            }
+
+            return IntersectBVHNode(_bvh.Root, nodeBounds);
+        }
+
+        private bool IntersectBVHNode(BVHNode bvhNode, PBoundingBox nodeBounds)
+        {
+            // Check if the BVH node's bounding box intersects with the nodeBounds
+            if (!bvhNode.Bounds.Intersects(nodeBounds))
+                return false;
+
+            if (bvhNode.IsLeaf)
+            {
+                // Check for triangle intersections
+                foreach (int idx in bvhNode.TriangleIndices)
+                {
+                    var face = _bvh.Mesh.Faces[idx];
+                    var v0 = _bvh.Mesh.Vertices[face[0]];
+                    var v1 = _bvh.Mesh.Vertices[face[1]];
+                    var v2 = _bvh.Mesh.Vertices[face[2]];
+
+                    if (TriangleIntersectsAABB(v0, v1, v2, nodeBounds))
+                    {
+                        return true; // Intersection found
+                    }
+                }
+                return false;
+            }
+            else
+            {
+                // Recursively check child nodes
+                return IntersectBVHNode(bvhNode.Left, nodeBounds) || IntersectBVHNode(bvhNode.Right, nodeBounds);
+            }
+        }
+
         public bool IsNodeIntersect(PBoundingBox nodeBounds, PMesh mesh)
         {
             int triangleBoundsCount = mesh.TriangleBounds.Count;

@@ -26,6 +26,21 @@ namespace Vox.Core.DataModels
 
         public PVector3d[] Corners => new PVector3d[2] { Min, Max };
 
+        /// <summary>
+        /// Check if the bounding box is degenerate. A bounding box is degenerate if the min values are greater than the max values.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsDegenerate()
+        {
+            return Min.X > Max.X || Min.Y > Max.Y || Min.Z > Max.Z;
+        }
+
+        public double SurfaceArea()
+        {
+            var size = Size;
+            return 2 * (size.X * size.Y + size.X * size.Z + size.Y * size.Z);
+        }
+
         public bool Intersects(PBoundingBox other)
         {
             return (Min.X <= other.Max.X && Max.X >= other.Min.X) &&
@@ -47,6 +62,13 @@ namespace Vox.Core.DataModels
             Min = PVector3d.Min(Min, bounds.Min);
             Max = PVector3d.Max(Max, bounds.Max);
         }
+
+        public void Expand(PVector3d point)
+        {
+            Min = PVector3d.Min(Min, point);
+            Max = PVector3d.Max(Max, point);
+        }
+
         /// <summary>
         /// Get the longest axis of the bounding box
         /// </summary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using Vox.Core.Algorithm.BVH;
 using Vox.Core.Algorithm.Collision;
 using Vox.Core.DataModels;
 
@@ -11,24 +12,50 @@ namespace Vox.Core.Algorithm.SVO
         private readonly int _maxDepth;
         private readonly PVector3d _rootSize;
         private readonly bool _isSolid;
+        private readonly Intersection _intersector;
+        private readonly BoundingVolumeHierarchy? _bvh;
 
         public SparseVoxelOctree(int maxDepth, PVector3d rootSize, bool isSolid)
         {
             _maxDepth = maxDepth;
             _rootSize = rootSize;
             _isSolid = isSolid;
+            _intersector = new Intersection();
+        }
+
+        public SparseVoxelOctree(int maxDepth, PVector3d rootSize, bool isSolid, BoundingVolumeHierarchy bvh)
+        {
+            _maxDepth = maxDepth;
+            _rootSize = rootSize;
+            _isSolid = isSolid;
+            _bvh = bvh;
+            _intersector = new Intersection(bvh);
         }
 
         private VoxelState GetState(PBoundingBox nodeBounds, PMesh mesh, bool isSolid)
         {
-            Intersection intersection = new Intersection();
 
-            if (intersection.IsNodeIntersect(nodeBounds, mesh))
+            if (_intersector.IsNodeIntersect(nodeBounds, mesh))
             {
                 return VoxelState.Intersecting;
             }
 
-            if (isSolid && intersection.IsFullyInside(nodeBounds, mesh))
+            if (isSolid && _intersector.IsFullyInside(nodeBounds, mesh))
+            {
+                return VoxelState.Inside;
+            }
+
+            return VoxelState.Outside;
+        }
+
+        private VoxelState GetStateBVH(PBoundingBox nodeBounds, PMesh mesh, bool isSolid)
+        {
+            if (_intersector.IsNodeIntersect(nodeBounds))
+            {
+                return VoxelState.Intersecting;
+            }
+
+            if (isSolid && _intersector.IsFullyInside(nodeBounds, mesh))
             {
                 return VoxelState.Inside;
             }
@@ -38,7 +65,16 @@ namespace Vox.Core.Algorithm.SVO
 
         public void Build(OctreeNode node, PMesh mesh, int depth = 0)
         {
-            VoxelState state = GetState(node.Bounds, mesh, _isSolid);
+            VoxelState state;
+            if (_bvh != null)
+            {
+                state = GetStateBVH(node.Bounds, mesh, _isSolid);
+            }
+            else
+            {
+                state = GetState(node.Bounds, mesh, _isSolid);
+            }
+            
 
             switch (state)
             {
