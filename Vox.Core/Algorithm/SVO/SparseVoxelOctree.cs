@@ -80,6 +80,10 @@ namespace Vox.Core.Algorithm.SVO
             {
                 case VoxelState.Outside:
                     // Node does not intersect the mesh
+                    node.IsLeaf = true;
+                    node.IsOccupied = false;
+                    node.Depth = depth;
+                    node.State = state;
                     return;
                 case VoxelState.Inside:
                     // Node is entirely inside the mesh, mark it as fully occupied and stop subdividing
@@ -115,7 +119,13 @@ namespace Vox.Core.Algorithm.SVO
 
         public void Collect(OctreeNode node, ConcurrentBag<Voxel> voxels)
         {
-            if (node.IsLeaf && node.IsOccupied)
+            //if (node.IsLeaf && node.IsOccupied)
+            //{
+            //    voxels.Add(new Voxel(node.Bounds.Center, GetVoxelSizeAtDepth(node.Depth), node.State));
+            //    return;
+            //}
+
+            if (node.IsLeaf)
             {
                 voxels.Add(new Voxel(node.Bounds.Center, GetVoxelSizeAtDepth(node.Depth), node.State));
                 return;
