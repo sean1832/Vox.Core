@@ -127,8 +127,14 @@ namespace Vox.Core.Algorithm.BVH
             // Now that bestCost is computed, check if splitting is beneficial
             const double minSplitImprovement = 0.05;
 
-            // If no significant improvement in cost, return a leaf node
-            if (bestCost >= triangleIndices.Count || bestAxis == -1)
+            // Calculate the cost of not splitting (i.e., making a leaf node)
+            double leafCost = triangleIndices.Count;
+
+            // Calculate improvement as the ratio of improvement from not splitting to splitting
+            double improvement = (leafCost - bestCost) / leafCost;
+
+            // If the improvement in cost is less than the threshold, or if no valid split was found, return a leaf node
+            if (improvement < minSplitImprovement || bestAxis == -1)
             {
                 node.TriangleIndices = triangleIndices.ToArray();
                 return node;

@@ -57,6 +57,20 @@ namespace Vox.Core.DataModels
             return new PBoundingBox(newMin, newMax);
         }
 
+        public PBoundingBox ToScale(PVector3d scale)
+        {
+            // first scale the bounding box to a cubic shape
+            double maxSize = Math.Max(Size.X, Math.Max(Size.Y, Size.Z));
+            PVector3d newMin = Center - new PVector3d(maxSize / 2.0, maxSize / 2.0, maxSize / 2.0);
+            PVector3d newMax = Center + new PVector3d(maxSize / 2.0, maxSize / 2.0, maxSize / 2.0);
+
+            // then apply the scale
+            newMin = new PVector3d(newMin.X * scale.X, newMin.Y * scale.Y, newMin.Z * scale.Z);
+            newMax = new PVector3d(newMax.X * scale.X, newMax.Y * scale.Y, newMax.Z * scale.Z);
+
+            return new PBoundingBox(newMin, newMax);
+        }
+
         public void Expand(PBoundingBox bounds)
         {
             Min = PVector3d.Min(Min, bounds.Min);

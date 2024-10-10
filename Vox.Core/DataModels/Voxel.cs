@@ -5,6 +5,13 @@ using Vox.Core.Algorithm.SVO;
 
 namespace Vox.Core.DataModels
 {
+    public enum VoxelState
+    {
+        Outside,
+        Intersecting,
+        Inside,
+    }
+
     public class Voxel
     {
         public PVector3d Position;

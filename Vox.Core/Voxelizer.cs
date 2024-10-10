@@ -20,29 +20,19 @@ namespace Vox.Core
         /// <param name="mesh">Mesh to voxelize</param>
         /// <param name="maxDepth">Maximum subdivision level (resolution)</param>
         /// <param name="isSolid">Infill interior of a mesh</param>
+        /// <param name="voxelScale">Scale factor for each voxel</param>
         /// <returns>Voxels</returns>
-        public List<Voxel> VoxelizeSVO(PMesh mesh, int maxDepth, bool isSolid)
+        public List<Voxel> VoxelizeSVO(PMesh mesh, int maxDepth, bool isSolid, PVector3d? voxelScale = null)
         {
+            voxelScale ??= new PVector3d(1, 1, 1);
             mesh.ComputeTriangleBounds(); // Precompute triangle bounds
-            PBoundingBox bBox = mesh.GetBoundingBox().ToCubic();
+            PBoundingBox bBox = mesh.GetBoundingBox().ToScale(voxelScale);
             OctreeNode rootNode = new OctreeNode(bBox);
             SparseVoxelOctree svo = new SparseVoxelOctree(maxDepth, rootNode.Bounds.Size, isSolid);
             svo.Build(rootNode, mesh);
 
             ConcurrentBag<Voxel> voxels = new ConcurrentBag<Voxel>();
             svo.Collect(rootNode, voxels);
-
-            //// Calculate the mesh's bounding box, use cubic bounding box as the root node
-            //PBoundingBox bBox = mesh.GetBoundingBox().ToCubic();
-            //mesh.ComputeTriangleBounds(); // precompute triangle bounds
-
-            //OctreeNode rootNode = new OctreeNode(bBox);
-            //BoundingVolumeHierarchy bvh = new BoundingVolumeHierarchy(mesh, 128);
-            //SparseVoxelOctree svo = new SparseVoxelOctree(maxDepth, rootNode.Bounds.Size, isSolid, bvh);
-            //svo.Build(rootNode, mesh);
-
-            //ConcurrentBag<Voxel> voxels = new ConcurrentBag<Voxel>();
-            //svo.Collect(rootNode, voxels);
 
             return voxels.ToList();
         }
@@ -53,11 +43,14 @@ namespace Vox.Core
         /// <param name="bvh">Precomputed BVH data</param>
         /// <param name="maxDepth">Maximum subdivision level (resolution)</param>
         /// <param name="isSolid">Infill interior of a mesh</param>
+        /// <param name="voxelScale">Scale factor for each voxel</param>
         /// <returns>Voxels</returns>
-        public List<Voxel> VoxelizeSVO(BoundingVolumeHierarchy bvh, int maxDepth, bool isSolid)
+        public List<Voxel> VoxelizeSVO(BoundingVolumeHierarchy bvh, int maxDepth, bool isSolid, PVector3d? voxelScale = null)
         {
+            voxelScale ??= new PVector3d(1, 1, 1);
+
             // Calculate the mesh's bounding box, use cubic bounding box as the root node
-            PBoundingBox bBox = bvh.Mesh.GetBoundingBox().ToCubic();
+            PBoundingBox bBox = bvh.Mesh.GetBoundingBox().ToScale(voxelScale);
 
             OctreeNode rootNode = new OctreeNode(bBox);
             SparseVoxelOctree svo = new SparseVoxelOctree(maxDepth, rootNode.Bounds.Size, isSolid, bvh);
