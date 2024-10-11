@@ -1,19 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Vox.Core.DataModels
 {
-    public class PVector3d : Coordinate3d<float>
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public readonly struct PVector3d
     {
-        public float Tolerance = 1e-6f;
+        public readonly float X;
+        public readonly float Y;
+        public readonly float Z;
+        public const float Tolerance = 1e-6f;
 
-        public PVector3d(float x, float y, float z) : base(x, y, z)
+        public PVector3d()
         {
+            X = 0;
+            Y = 0;
+            Z = 0;
         }
 
-        public PVector3d(): base(0,0,0)
+        public PVector3d(float x, float y, float z)
         {
+            X = x;
+            Y = y;
+            Z = z;
         }
+
+        public static readonly PVector3d Zero = new PVector3d(0, 0, 0);
+        public static readonly PVector3d One = new PVector3d(1, 1, 1);
+        public static readonly PVector3d UnitX = new PVector3d(1, 0, 0);
+        public static readonly PVector3d UnitY = new PVector3d(0, 1, 0);
+        public static readonly PVector3d UnitZ = new PVector3d(0, 0, 1);
 
         public static PVector3d Min(PVector3d a, PVector3d b)
         {
@@ -23,6 +41,21 @@ namespace Vox.Core.DataModels
         public static PVector3d Max(PVector3d a, PVector3d b)
         {
             return new PVector3d(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y), Math.Max(a.Z, b.Z));
+        }
+
+        public float Min()
+        {
+            return Math.Min(X, Math.Min(Y, Z));
+        }
+
+        public float Max()
+        {
+            return Math.Max(X, Math.Max(Y, Z));
+        }
+
+        public PVector3d Abs()
+        {
+            return new PVector3d(Math.Abs(X), Math.Abs(Y), Math.Abs(Z));
         }
 
         public float[] ToArray()
@@ -35,25 +68,12 @@ namespace Vox.Core.DataModels
             return new PVector3d(array[0], array[1], array[2]);
         }
 
-        public PVector3d Abs()
-        {
-            return new PVector3d(Math.Abs(X), Math.Abs(Y), Math.Abs(Z));
-        }
-
-        public float MinComponent()
-        {
-            return Math.Min(X, Math.Min(Y, Z));
-        }
-
-        public float MaxComponent()
-        {
-            return Math.Max(X, Math.Max(Y, Z));
-        }
-
         public PVector3d Normalize()
         {
-            float magnitude = (float)Math.Sqrt(X * X + Y * Y + Z * Z);
-            return new PVector3d(X / magnitude, Y / magnitude, Z / magnitude);
+            float magnitude = Magnitude();
+            if (magnitude > Tolerance)
+                return new PVector3d(X / magnitude, Y / magnitude, Z / magnitude);
+            return Zero; // Handle degenerate cases
         }
 
         public bool IsNormalized(float tolerance = 0.0001f)
@@ -61,6 +81,7 @@ namespace Vox.Core.DataModels
             return Math.Abs(Math.Sqrt(X * X + Y * Y + Z * Z) - 1) < tolerance;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static PVector3d CrossProduct(PVector3d a, PVector3d b)
         {
             return new PVector3d(a.Y * b.Z - a.Z * b.Y,
@@ -68,11 +89,13 @@ namespace Vox.Core.DataModels
                 a.X * b.Y - a.Y * b.X);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float DotProduct(PVector3d a, PVector3d b)
         {
             return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float DotProduct(float[] a, float[] b)
         {
             return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
@@ -81,6 +104,11 @@ namespace Vox.Core.DataModels
         public static float AngleBetween(PVector3d a, PVector3d b)
         {
             return (float)Math.Acos(DotProduct(a, b) / (a.Magnitude() * b.Magnitude()));
+        }
+
+        public float MagnitudeSquared()
+        {
+            return X * X + Y * Y + Z * Z;
         }
 
         public float Magnitude()
@@ -103,16 +131,12 @@ namespace Vox.Core.DataModels
 
         public override int GetHashCode()
         {
-            int xInt = (int)Math.Round(X / Tolerance);
-            int yInt = (int)Math.Round(Y / Tolerance);
-            int zInt = (int)Math.Round(Z / Tolerance);
-
             unchecked
             {
                 int hash = 17;
-                hash = hash * 23 + xInt;
-                hash = hash * 23 + yInt;
-                hash = hash * 23 + zInt;
+                hash = hash * 23 + X.GetHashCode(); // Using float.GetHashCode() to avoid division
+                hash = hash * 23 + Y.GetHashCode();
+                hash = hash * 23 + Z.GetHashCode();
                 return hash;
             }
         }
@@ -127,7 +151,7 @@ namespace Vox.Core.DataModels
         public static PVector3d operator /(PVector3d a, PVector3d b) => new PVector3d(a.X / b.X, a.Y / b.Y, a.Z / b.Z);
     }
 
-    public class PVector3dEqualityComparer : IEqualityComparer<PVector3d>
+    public readonly struct PVector3dEqualityComparer : IEqualityComparer<PVector3d>
     {
         private readonly float _tolerance;
 
@@ -140,7 +164,7 @@ namespace Vox.Core.DataModels
         {
             if (ReferenceEquals(a, b))
                 return true;
-            if (a is null || b is null)
+            if (a.Equals(default(PVector3d)) || b.Equals(default(PVector3d)))
                 return false;
 
             return Math.Abs(a.X - b.X) < _tolerance &&

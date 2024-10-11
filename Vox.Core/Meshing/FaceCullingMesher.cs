@@ -22,7 +22,7 @@ namespace Vox.Core.Meshing
 
         public PMesh Generate(List<Voxel> voxels)
         {
-            float cellSize = voxels.First().Size.MinComponent(); // Get the minimum size of the voxels
+            float cellSize = voxels.First().Size.Min(); // Get the minimum size of the voxels
             // Initialize the spatial hasher
             var hasher = new SpatialHasher(cellSize);
             var spatialHash = new Dictionary<int, List<Voxel>>();
@@ -89,7 +89,7 @@ namespace Vox.Core.Meshing
             {
                 throw new ArgumentException("Positions and voxelSizes must have the same length.");
             }
-            float cellSize = voxelSizes.First().MinComponent(); // Get the minimum size of the voxels
+            float cellSize = voxelSizes.First().Min(); // Get the minimum size of the voxels
             // Initialize the spatial hasher
             var hasher = new SpatialHasher(cellSize);
             var spatialHash = new Dictionary<int, List<(PVector3d, PVector3d)>>();

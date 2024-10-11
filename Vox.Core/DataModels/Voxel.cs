@@ -11,11 +11,11 @@ namespace Vox.Core.DataModels
         Inside,
     }
 
-    public class Voxel
+    public readonly struct Voxel
     {
-        public PVector3d Position;
-        public PVector3d Size;
-        public VoxelState VoxelState;
+        public readonly PVector3d Position;
+        public readonly PVector3d Size;
+        public readonly VoxelState VoxelState;
         
 
         public Voxel(PVector3d position, PVector3d size, VoxelState state)

@@ -22,9 +22,8 @@ namespace Vox.Core
         /// <param name="isSolid">Infill interior of a mesh</param>
         /// <param name="voxelScale">Scale factor for each voxel</param>
         /// <returns>Voxels</returns>
-        public List<Voxel> VoxelizeSVO(PMesh mesh, int maxDepth, bool isSolid, PVector3d? voxelScale = null)
+        public List<Voxel> VoxelizeSVO(PMesh mesh, int maxDepth, bool isSolid, PVector3d voxelScale)
         {
-            voxelScale ??= new PVector3d(1, 1, 1);
             mesh.ComputeTriangleBounds(); // Precompute triangle bounds
             PBoundingBox bBox = mesh.GetBoundingBox().ToScale(voxelScale);
             OctreeNode rootNode = new OctreeNode(bBox);
@@ -44,10 +43,8 @@ namespace Vox.Core
         /// <param name="isSolid">Infill interior of a mesh</param>
         /// <param name="voxelScale">Scale factor for each voxel</param>
         /// <returns>Voxels</returns>
-        public List<Voxel> VoxelizeSVO(BoundingVolumeHierarchy bvh, int maxDepth, bool isSolid, PVector3d? voxelScale = null)
+        public List<Voxel> VoxelizeSVO(BoundingVolumeHierarchy bvh, int maxDepth, bool isSolid, PVector3d voxelScale)
         {
-            voxelScale ??= new PVector3d(1, 1, 1);
-
             // Calculate the mesh's bounding box, use cubic bounding box as the root node
             PBoundingBox bBox = bvh.Mesh.GetBoundingBox().ToScale(voxelScale);
 
