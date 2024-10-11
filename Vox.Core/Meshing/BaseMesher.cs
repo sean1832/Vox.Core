@@ -9,6 +9,18 @@ namespace Vox.Core.Meshing
     {
         public abstract PMesh GenerateMesh(List<PVector3d> positions, List<PVector3d> voxelSizes);
 
+        /// <summary>
+        /// Directions: Front, Back, Left, Right, Top, Bottom
+        /// </summary>
+        protected static readonly PVector3d[] Directions = new PVector3d[]
+        {
+            new PVector3d(1, 0, 0),  // Front (X+)
+            new PVector3d(-1, 0, 0), // Back (X-)
+            new PVector3d(0, -1, 0), // Left (Y-)
+            new PVector3d(0, 1, 0),  // Right (Y+)
+            new PVector3d(0, 0, 1),  // Top (Z+)
+            new PVector3d(0, 0, -1)  // Bottom (Z-)
+        };
 
         protected void GenerateFace(PVector3d position, PVector3d direction, List<PVector3d> vertices,
             List<int[]> triangles, PVector3d voxelSize)

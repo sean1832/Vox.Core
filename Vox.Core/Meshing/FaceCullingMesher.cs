@@ -9,17 +9,6 @@ namespace Vox.Core.Meshing
 {
     internal class FaceCullingMesher: BaseMesher
     {
-        // Directions: Front, Back, Left, Right, Top, Bottom
-        private static readonly PVector3d[] Directions = new PVector3d[]
-        {
-            new PVector3d(1, 0, 0),  // Front (X+)
-            new PVector3d(-1, 0, 0), // Back (X-)
-            new PVector3d(0, -1, 0), // Left (Y-)
-            new PVector3d(0, 1, 0),  // Right (Y+)
-            new PVector3d(0, 0, 1),  // Top (Z+)
-            new PVector3d(0, 0, -1)  // Bottom (Z-)
-        };
-
         public PMesh Generate(List<Voxel> voxels)
         {
             float cellSize = voxels.First().Size.Min(); // Get the minimum size of the voxels

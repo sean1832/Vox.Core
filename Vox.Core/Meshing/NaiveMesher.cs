@@ -7,16 +7,6 @@ namespace Vox.Core.Meshing
 {
     internal class NaiveMesher: BaseMesher
     {
-        private static readonly PVector3d[] Directions = new PVector3d[]
-        {
-        new PVector3d(1, 0, 0),  // Front (X+)
-        new PVector3d(-1, 0, 0), // Back (X-)
-        new PVector3d(0, -1, 0), // Left (Y-)
-        new PVector3d(0, 1, 0),  // Right (Y+)
-        new PVector3d(0, 0, 1),  // Top (Z+)
-        new PVector3d(0, 0, -1)  // Bottom (Z-)
-        };
-
         public override PMesh GenerateMesh(List<PVector3d> positions, List<PVector3d> voxelSizes)
         {
             if (positions.Count != voxelSizes.Count)
