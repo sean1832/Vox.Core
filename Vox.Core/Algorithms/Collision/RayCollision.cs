@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Vox.Core.DataModels;
 
-namespace Vox.Core.Algorithm.Collision
+namespace Vox.Core.Algorithms.Collision
 {
     internal static class RayCollision
     {

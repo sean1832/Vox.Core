@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using Vox.Core.Algorithm.BVH;
-using Vox.Core.Algorithm.Collision;
+using Vox.Core.Algorithms.BVH;
+using Vox.Core.Algorithms.Collision;
 using Vox.Core.DataModels;
 
-namespace Vox.Core.Algorithm.SVO
+namespace Vox.Core.Algorithms.SVO
 {
     internal class SparseVoxelOctree
     {

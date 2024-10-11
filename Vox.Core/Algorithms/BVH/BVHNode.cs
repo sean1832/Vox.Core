@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Vox.Core.DataModels;
+﻿using Vox.Core.DataModels;
 
-namespace Vox.Core.Algorithm.BVH
+namespace Vox.Core.Algorithms.BVH
 {
     public class BVHNode
     {

@@ -2,8 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Vox.Core.Algorithm.BVH;
-using Vox.Core.Algorithm.SVO;
+using Vox.Core.Algorithms.BVH;
+using Vox.Core.Algorithms.SVO;
 using Vox.Core.DataModels;
 
 namespace Vox.Core
@@ -33,7 +33,6 @@ namespace Vox.Core
 
             ConcurrentBag<Voxel> voxels = new ConcurrentBag<Voxel>();
             svo.Collect(rootNode, voxels);
-
             return voxels.ToList();
         }
 

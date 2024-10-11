@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Vox.Core.Algorithm.SVO;
 
 namespace Vox.Core.DataModels
 {

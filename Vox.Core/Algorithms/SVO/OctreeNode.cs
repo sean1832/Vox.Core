@@ -4,7 +4,7 @@ using System.Diagnostics.Tracing;
 using System.Text;
 using Vox.Core.DataModels;
 
-namespace Vox.Core.Algorithm.SVO
+namespace Vox.Core.Algorithms.SVO
 {
     internal class OctreeNode
     {

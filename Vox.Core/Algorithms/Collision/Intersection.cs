@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using Vox.Core.Algorithm.BVH;
-using Vox.Core.Algorithm.SVO;
+using Vox.Core.Algorithms.BVH;
 using Vox.Core.DataModels;
 
-namespace Vox.Core.Algorithm.Collision
+namespace Vox.Core.Algorithms.Collision
 {
     internal class Intersection
     {
