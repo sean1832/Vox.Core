@@ -143,7 +143,7 @@ namespace Vox.Core.Algorithm.SVO
         public PVector3d GetVoxelSizeAtDepth(int depth)
         {
             // Voxel size = root size / (2^depth) for each dimension
-            return _rootSize / Math.Pow(2, depth);
+            return _rootSize / (float)Math.Pow(2, depth);
         }
     }
 }

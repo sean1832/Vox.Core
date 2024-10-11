@@ -86,8 +86,8 @@ namespace Vox.Core.Algorithm.Collision
             // Implementing the Separating Axis Theorem (SAT) for triangle-AABB intersection
 
             // Move triangle into box's local coordinate frame
-            PVector3d boxCenter = (box.Min + box.Max) * 0.5;
-            PVector3d boxHalfSize = (box.Max - box.Min) * 0.5;
+            PVector3d boxCenter = (box.Min + box.Max) * 0.5f;
+            PVector3d boxHalfSize = (box.Max - box.Min) * 0.5f;
 
             PVector3d v0b = v0 - boxCenter;
             PVector3d v1b = v1 - boxCenter;
@@ -141,20 +141,20 @@ namespace Vox.Core.Algorithm.Collision
 
         private static bool PlaneBoxOverlap(PVector3d normal, PVector3d vert, PVector3d maxBox)
         {
-            double[] vMin = new PVector3d().ToArray();
-            double[] vMax = new PVector3d().ToArray();
+            float[] vMin = new PVector3d().ToArray();
+            float[] vMax = new PVector3d().ToArray();
 
 
 
-            double[] vertArray = vert.ToArray();
-            double[] normalArray = normal.ToArray();
-            double[] maxBoxArray = maxBox.ToArray();
+            float[] vertArray = vert.ToArray();
+            float[] normalArray = normal.ToArray();
+            float[] maxBoxArray = maxBox.ToArray();
 
             for (int q = 0; q < 3; q++)
             {
-                double v = vertArray[q];
-                double n = normalArray[q];
-                double max = maxBoxArray[q];
+                float v = vertArray[q];
+                float n = normalArray[q];
+                float max = maxBoxArray[q];
 
                 if (n > 0.0f)
                 {

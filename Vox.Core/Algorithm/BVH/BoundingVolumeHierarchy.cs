@@ -190,7 +190,7 @@ namespace Vox.Core.Algorithm.BVH
             var v0 = Mesh.Vertices[face[0]];
             var v1 = Mesh.Vertices[face[1]];
             var v2 = Mesh.Vertices[face[2]];
-            return (v0 + v1 + v2) / 3.0;
+            return (v0 + v1 + v2) / 3.0f;
         }
 
         private double GetTriangleCentroid(int triangleIndex, int axis)

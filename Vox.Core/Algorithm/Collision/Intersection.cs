@@ -118,7 +118,7 @@ namespace Vox.Core.Algorithm.Collision
         private bool IsPointInsideMesh(PVector3d point)
         {
             // Use a ray casting method optimized with BVH
-            PVector3d rayDirection = new PVector3d(1, 0.5, 0.25); // Arbitrary direction
+            PVector3d rayDirection = new PVector3d(1, 0.5f, 0.25f); // Arbitrary direction
             int intersections = CountRayIntersections(point, rayDirection, _bvh.Root);
 
             // Point is inside if intersections are odd

@@ -17,8 +17,8 @@ namespace Vox.Core.DataModels
 
         public PBoundingBox()
         {
-            Min = new PVector3d(double.MaxValue, double.MaxValue, double.MaxValue);
-            Max = new PVector3d(double.MinValue, double.MinValue, double.MinValue);
+            Min = new PVector3d(float.MaxValue, float.MaxValue, float.MaxValue);
+            Max = new PVector3d(float.MinValue, float.MinValue, float.MinValue);
         }
 
         public PVector3d Center => (Min + Max) / 2;
@@ -50,9 +50,9 @@ namespace Vox.Core.DataModels
 
         public PBoundingBox ToCubic()
         {
-            double maxSize = Math.Max(Size.X, Math.Max(Size.Y, Size.Z));
-            PVector3d newMin = Center - new PVector3d(maxSize / 2.0, maxSize / 2.0, maxSize / 2.0);
-            PVector3d newMax = Center + new PVector3d(maxSize / 2.0, maxSize / 2.0, maxSize / 2.0);
+            float maxSize = Math.Max(Size.X, Math.Max(Size.Y, Size.Z));
+            PVector3d newMin = Center - new PVector3d(maxSize / 2.0f, maxSize / 2.0f, maxSize / 2.0f);
+            PVector3d newMax = Center + new PVector3d(maxSize / 2.0f, maxSize / 2.0f, maxSize / 2.0f);
 
             return new PBoundingBox(newMin, newMax);
         }
@@ -60,9 +60,9 @@ namespace Vox.Core.DataModels
         public PBoundingBox ToScale(PVector3d scale)
         {
             // first scale the bounding box to a cubic shape
-            double maxSize = Math.Max(Size.X, Math.Max(Size.Y, Size.Z));
-            PVector3d newMin = Center - new PVector3d(maxSize / 2.0, maxSize / 2.0, maxSize / 2.0);
-            PVector3d newMax = Center + new PVector3d(maxSize / 2.0, maxSize / 2.0, maxSize / 2.0);
+            float maxSize = Math.Max(Size.X, Math.Max(Size.Y, Size.Z));
+            PVector3d newMin = Center - new PVector3d(maxSize / 2.0f, maxSize / 2.0f, maxSize / 2.0f);
+            PVector3d newMax = Center + new PVector3d(maxSize / 2.0f, maxSize / 2.0f, maxSize / 2.0f);
 
             // then apply the scale
             newMin = new PVector3d(newMin.X * scale.X, newMin.Y * scale.Y, newMin.Z * scale.Z);

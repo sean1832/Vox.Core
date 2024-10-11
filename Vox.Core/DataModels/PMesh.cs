@@ -72,8 +72,8 @@ namespace Vox.Core.DataModels
 
         public PBoundingBox GetBoundingBox()
         {
-            double minX = double.MaxValue, minY = double.MaxValue, minZ = double.MaxValue;
-            double maxX = double.MinValue, maxY = double.MinValue, maxZ = double.MinValue;
+            float minX = float.MaxValue, minY = float.MaxValue, minZ = float.MaxValue;
+            float maxX = float.MinValue, maxY = float.MinValue, maxZ = float.MinValue;
 
             foreach (var vertex in Vertices)
             {
