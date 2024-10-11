@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Vox.Core.DataModels
 {
@@ -124,5 +125,43 @@ namespace Vox.Core.DataModels
         public static PVector3d operator *(PVector3d a, float b) => new PVector3d(a.X * b, a.Y * b, a.Z * b);
         public static PVector3d operator /(PVector3d a, float b) => new PVector3d(a.X / b, a.Y / b, a.Z / b);
         public static PVector3d operator /(PVector3d a, PVector3d b) => new PVector3d(a.X / b.X, a.Y / b.Y, a.Z / b.Z);
+    }
+
+    public class PVector3dEqualityComparer : IEqualityComparer<PVector3d>
+    {
+        private readonly float _tolerance;
+
+        public PVector3dEqualityComparer(float tolerance)
+        {
+            _tolerance = tolerance;
+        }
+
+        public bool Equals(PVector3d a, PVector3d b)
+        {
+            if (ReferenceEquals(a, b))
+                return true;
+            if (a is null || b is null)
+                return false;
+
+            return Math.Abs(a.X - b.X) < _tolerance &&
+                   Math.Abs(a.Y - b.Y) < _tolerance &&
+                   Math.Abs(a.Z - b.Z) < _tolerance;
+        }
+
+        public int GetHashCode(PVector3d obj)
+        {
+            int xInt = (int)Math.Round(obj.X / _tolerance);
+            int yInt = (int)Math.Round(obj.Y / _tolerance);
+            int zInt = (int)Math.Round(obj.Z / _tolerance);
+
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 31 + xInt;
+                hash = hash * 31 + yInt;
+                hash = hash * 31 + zInt;
+                return hash;
+            }
+        }
     }
 }

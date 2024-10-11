@@ -25,10 +25,11 @@ namespace Vox.Core
             switch (algorithm)
             {
                 case MeshingAlgorithm.Naive:
-                    throw new NotImplementedException();
+                    NaiveMesher naiveMesher = new NaiveMesher();
+                    return naiveMesher.GenerateMesh(positions, voxelSizes);
                 case MeshingAlgorithm.FaceCulling:
-                    FaceCullingMesher mesher = new FaceCullingMesher();
-                    return mesher.Generate(positions, voxelSizes);
+                    FaceCullingMesher faceCullingMesher = new FaceCullingMesher();
+                    return faceCullingMesher.GenerateMesh(positions, voxelSizes);
                 case MeshingAlgorithm.MarchingCubes:
                     throw new NotImplementedException();
                 case MeshingAlgorithm.Greedy:
