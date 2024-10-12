@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Text;
 using Vox.Core.DataModels;
 
@@ -21,6 +22,25 @@ namespace Vox.Core.Meshing
             new PVector3d(0, 0, 1),  // Top (Z+)
             new PVector3d(0, 0, -1)  // Bottom (Z-)
         };
+
+        protected PMesh MakeCube(PVector3d position, PVector3d voxelSize)
+        {
+            List<PVector3d> vertices = new List<PVector3d>();
+            List<int[]> triangles = new List<int[]>();
+
+            foreach (var direction in Directions)
+            {
+                MakeFace(position, direction, vertices, triangles, voxelSize);
+            }
+
+            // Validate that faces and vertices were generated
+            if (vertices.Count == 0 || triangles.Count == 0)
+            {
+                throw new InvalidOperationException("Vertices or faces failed to generate.");
+            }
+
+            return new PMesh(vertices, triangles);
+        }
 
         protected void MakeFace(PVector3d position, PVector3d direction, List<PVector3d> vertices,
             List<int[]> triangles, PVector3d voxelSize)

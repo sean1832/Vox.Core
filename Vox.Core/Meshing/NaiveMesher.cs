@@ -39,6 +39,30 @@ namespace Vox.Core.Meshing
             // Return the final mesh
             return new PMesh(vertices, faces);
         }
+
+        public List<PMesh> GenerateMeshes(List<PVector3d> positions, List<PVector3d> voxelSizes)
+        {
+            if (positions.Count != voxelSizes.Count)
+            {
+                throw new ArgumentException("Positions and voxelSizes must have the same length.");
+            }
+
+            List<PMesh> meshes = new List<PMesh>();
+
+            // Iterate over each voxel to generate a full cube for each one
+            for (int i = 0; i < positions.Count; i++)
+            {
+                var position = positions[i];
+                var voxelSize = voxelSizes[i];
+
+                PMesh mesh = MakeCube(position, voxelSize);
+
+                // Add the mesh to the list
+                meshes.Add(mesh);
+            }
+
+            return meshes;
+        }
     }
 
 }

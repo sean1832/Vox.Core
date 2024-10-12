@@ -20,20 +20,20 @@ namespace Vox.Core
 
     public class Mesher
     {
-        public PMesh Generate(MeshingAlgorithm algorithm, List<PVector3d> positions, List<PVector3d> voxelSizes)
+        public List<PMesh> Generate(MeshingAlgorithm algorithm, List<PVector3d> positions, List<PVector3d> voxelSizes)
         {
             switch (algorithm)
             {
                 case MeshingAlgorithm.Naive:
                     NaiveMesher naiveMesher = new NaiveMesher();
-                    return naiveMesher.GenerateMesh(positions, voxelSizes);
+                    return naiveMesher.GenerateMeshes(positions, voxelSizes);
                 case MeshingAlgorithm.FaceCulling:
                     FaceCullingMesher faceCullingMesher = new FaceCullingMesher();
-                    return faceCullingMesher.GenerateMesh(positions, voxelSizes);
+                    return new List<PMesh>() { faceCullingMesher.GenerateMesh(positions, voxelSizes) };
                 case MeshingAlgorithm.MarchingCubes:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException($"Algorithm not implemented: {nameof(MeshingAlgorithm.MarchingCubes)}");
                 case MeshingAlgorithm.Greedy:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException($"Algorithm not implemented: {nameof(MeshingAlgorithm.Greedy)}");
                 default:
                     throw new InvalidEnumArgumentException();
             }
