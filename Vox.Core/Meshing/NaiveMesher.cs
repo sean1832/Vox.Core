@@ -26,7 +26,7 @@ namespace Vox.Core.Meshing
                 // Generate faces for all six sides of the voxel
                 foreach (var direction in Directions)
                 {
-                    GenerateFace(position, direction, vertices, faces, voxelSize);
+                    MakeFace(position, direction, vertices, faces, voxelSize);
                 }
             }
 

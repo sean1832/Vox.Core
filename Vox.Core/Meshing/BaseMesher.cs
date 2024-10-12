@@ -22,11 +22,11 @@ namespace Vox.Core.Meshing
             new PVector3d(0, 0, -1)  // Bottom (Z-)
         };
 
-        protected void GenerateFace(PVector3d position, PVector3d direction, List<PVector3d> vertices,
+        protected void MakeFace(PVector3d position, PVector3d direction, List<PVector3d> vertices,
             List<int[]> triangles, PVector3d voxelSize)
         {
             int vertexIndex = vertices.Count;
-            PVector3d[] faceVertices = GenerateFaceVertices(position, direction, voxelSize);
+            PVector3d[] faceVertices = MakeFaceVertices(position, direction, voxelSize);
             vertices.AddRange(faceVertices);
 
             // Determine the correct winding order based on the direction vector
@@ -78,7 +78,7 @@ namespace Vox.Core.Meshing
         }
 
 
-        private PVector3d[] GenerateFaceVertices(PVector3d position, PVector3d direction, PVector3d voxelSize)
+        private PVector3d[] MakeFaceVertices(PVector3d position, PVector3d direction, PVector3d voxelSize)
         {
             PVector3d[] faceVertices = new PVector3d[4];
             PVector3d halfSize = voxelSize * 0.5f;

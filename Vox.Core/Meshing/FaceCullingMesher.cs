@@ -57,7 +57,7 @@ namespace Vox.Core.Meshing
 
                     if (!neighborExist)
                     {
-                        GenerateFace(voxel.Position, direction, vertices, faces, voxel.Size);
+                        MakeFace(voxel.Position, direction, vertices, faces, voxel.Size);
                     }
                 }
             }
@@ -133,7 +133,7 @@ namespace Vox.Core.Meshing
                     // If no neighbor is found, generate the face
                     if (!neighborExists)
                     {
-                        GenerateFace(position, direction, vertices, faces, voxelSize);
+                        MakeFace(position, direction, vertices, faces, voxelSize);
                     }
                 }
             }
