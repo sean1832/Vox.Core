@@ -1,21 +1,23 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using Vox.Core.Algorithms.BVH;
 using Vox.Core.Algorithms.Collision;
 using Vox.Core.DataModels;
 
-namespace Vox.Core.Algorithms.SVO
+namespace Vox.Core.Algorithms.SparseVoxelOctree
 {
-    internal class SparseVoxelOctree
+    /// <summary>
+    /// Sparse Voxel Octree (SVO) implementation
+    /// </summary>
+    internal class SVO
     {
         private readonly int _maxDepth;
         private readonly PVector3d _rootSize;
         private readonly bool _isSolid;
         private readonly Intersection _intersector;
-        private readonly BoundingVolumeHierarchy? _bvh;
+        private readonly BoundingVolumeHierarchy.BVH? _bvh;
 
-        public SparseVoxelOctree(int maxDepth, PVector3d rootSize, bool isSolid)
+        public SVO(int maxDepth, PVector3d rootSize, bool isSolid)
         {
             _maxDepth = maxDepth;
             _rootSize = rootSize;
@@ -23,7 +25,7 @@ namespace Vox.Core.Algorithms.SVO
             _intersector = new Intersection();
         }
 
-        public SparseVoxelOctree(int maxDepth, PVector3d rootSize, bool isSolid, BoundingVolumeHierarchy bvh)
+        public SVO(int maxDepth, PVector3d rootSize, bool isSolid, BoundingVolumeHierarchy.BVH bvh)
         {
             _maxDepth = maxDepth;
             _rootSize = rootSize;

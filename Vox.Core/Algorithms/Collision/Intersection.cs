@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using Vox.Core.Algorithms.BVH;
+using Vox.Core.Algorithms.BoundingVolumeHierarchy;
 using Vox.Core.DataModels;
 
 namespace Vox.Core.Algorithms.Collision
 {
     internal class Intersection
     {
-        private readonly BoundingVolumeHierarchy? _bvh;
+        private readonly BoundingVolumeHierarchy.BVH? _bvh;
 
         public Intersection()
         {
         }
 
-        public Intersection(BoundingVolumeHierarchy bvh)
+        public Intersection(BoundingVolumeHierarchy.BVH bvh)
         {
             _bvh = bvh;
         }
@@ -23,7 +23,7 @@ namespace Vox.Core.Algorithms.Collision
         {
             if (_bvh == null)
             {
-                throw new InvalidOperationException($"{nameof(BoundingVolumeHierarchy)} not initialized!");
+                throw new InvalidOperationException($"{nameof(BoundingVolumeHierarchy.BVH)} not initialized!");
             }
 
             return IntersectBVHNode(_bvh.Root, nodeBounds);
@@ -54,7 +54,7 @@ namespace Vox.Core.Algorithms.Collision
                 var v1 = mesh.Vertices[face[1]];
                 var v2 = mesh.Vertices[face[2]];
 
-                if (RayCollision.TriangleIntersectsAABB(v0, v1, v2, nodeBounds))
+                if (AABB.TriangleIntersectsAABB(v0, v1, v2, nodeBounds))
                 {
                     return true; // Node intersects the mesh
                 }
@@ -78,7 +78,7 @@ namespace Vox.Core.Algorithms.Collision
                     var v1 = _bvh.Mesh.Vertices[face[1]];
                     var v2 = _bvh.Mesh.Vertices[face[2]];
 
-                    if (RayCollision.TriangleIntersectsAABB(v0, v1, v2, nodeBounds))
+                    if (AABB.TriangleIntersectsAABB(v0, v1, v2, nodeBounds))
                     {
                         return true; // Intersection found
                     }
@@ -126,7 +126,7 @@ namespace Vox.Core.Algorithms.Collision
 
         private int CountRayIntersections(PVector3d rayOrigin, PVector3d rayDirection, BVHNode bvhNode)
         {
-            if (!RayCollision.RayIntersectsAABB(rayOrigin, rayDirection, bvhNode.Bounds))
+            if (!RayCollision.RayIntersectsBounds(rayOrigin, rayDirection, bvhNode.Bounds))
                 return 0;
 
             if (bvhNode.IsLeaf)

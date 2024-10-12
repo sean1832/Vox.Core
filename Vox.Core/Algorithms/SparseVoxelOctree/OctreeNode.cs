@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using System.Text;
-using Vox.Core.DataModels;
+﻿using Vox.Core.DataModels;
 
-namespace Vox.Core.Algorithms.SVO
+namespace Vox.Core.Algorithms.SparseVoxelOctree
 {
     internal class OctreeNode
     {

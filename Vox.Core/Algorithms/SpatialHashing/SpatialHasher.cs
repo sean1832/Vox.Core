@@ -5,9 +5,14 @@ namespace Vox.Core.Algorithms.SpatialHashing
 {
     internal class SpatialHasher
     {
-        private readonly float _cellSize;
+        private readonly PVector3d _cellSize;
 
         public SpatialHasher(float cellSize)
+        {
+            _cellSize = new PVector3d(cellSize, cellSize, cellSize);
+        }
+
+        public SpatialHasher(PVector3d cellSize)
         {
             _cellSize = cellSize;
         }
@@ -15,9 +20,9 @@ namespace Vox.Core.Algorithms.SpatialHashing
         // Hash function to map a PVector3d to an integer key
         public int Hash(PVector3d position)
         {
-            int x = (int)Math.Floor(position.X / _cellSize);
-            int y = (int)Math.Floor(position.Y / _cellSize);
-            int z = (int)Math.Floor(position.Z / _cellSize);
+            int x = (int)Math.Floor(position.X / _cellSize.X);
+            int y = (int)Math.Floor(position.Y / _cellSize.Y);
+            int z = (int)Math.Floor(position.Z / _cellSize.Z);
 
             // Combine the coordinates into a single hash
             unchecked

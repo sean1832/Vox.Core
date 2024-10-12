@@ -2,16 +2,19 @@
 using System.Collections.Generic;
 using Vox.Core.DataModels;
 
-namespace Vox.Core.Algorithms.BVH
+namespace Vox.Core.Algorithms.BoundingVolumeHierarchy
 {
-    public class BoundingVolumeHierarchy
+    /// <summary>
+    /// Bounding Volume Hierarchy (BVH) Acceleration Structure
+    /// </summary>
+    public class BVH
     {
         public readonly PMesh Mesh;
         private readonly int _maxTrianglesPerLeaf;
         private readonly int _numBucket;
         public BVHNode Root { get; private set; }
 
-        public BoundingVolumeHierarchy(PMesh mesh, int maxTrianglesPerLeaf = 8, int numBucket = 4)
+        public BVH(PMesh mesh, int maxTrianglesPerLeaf = 8, int numBucket = 4)
         {
             Mesh = mesh;
             _numBucket = numBucket;

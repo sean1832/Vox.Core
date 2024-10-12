@@ -1,6 +1,6 @@
 ﻿using Vox.Core.DataModels;
 
-namespace Vox.Core.Algorithms.BVH
+namespace Vox.Core.Algorithms.BoundingVolumeHierarchy
 {
     public class BVHNode
     {
