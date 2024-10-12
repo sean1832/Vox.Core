@@ -6,20 +6,20 @@ using Vox.Core.DataModels;
 
 namespace Vox.Core.Algorithms.Collision
 {
-    internal class Intersection
+    internal class NodeIntersection
     {
         private readonly BoundingVolumeHierarchy.BVH? _bvh;
 
-        public Intersection()
+        public NodeIntersection()
         {
         }
 
-        public Intersection(BoundingVolumeHierarchy.BVH bvh)
+        public NodeIntersection(BoundingVolumeHierarchy.BVH bvh)
         {
             _bvh = bvh;
         }
 
-        public bool IsNodeIntersect(PBoundingBox nodeBounds)
+        public bool IsNodeIntersectBVH(PBoundingBox nodeBounds)
         {
             if (_bvh == null)
             {
@@ -29,7 +29,7 @@ namespace Vox.Core.Algorithms.Collision
             return IntersectBVHNode(_bvh.Root, nodeBounds);
         }
 
-        public bool IsNodeIntersect(PBoundingBox nodeBounds, PMesh mesh)
+        public bool IsNodeIntersectSVO(PBoundingBox nodeBounds, PMesh mesh)
         {
             int triangleBoundsCount = mesh.TriangleBounds.Count;
             if (triangleBoundsCount == 0)
@@ -106,7 +106,7 @@ namespace Vox.Core.Algorithms.Collision
             }
 
             // Additionally, ensure the node does not intersect the mesh surface
-            if (IsNodeIntersect(nodeBounds, mesh))
+            if (IsNodeIntersectSVO(nodeBounds, mesh))
             {
                 return false;
             }

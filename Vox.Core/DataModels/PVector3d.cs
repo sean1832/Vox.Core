@@ -147,7 +147,9 @@ namespace Vox.Core.DataModels
         public static PVector3d operator -(PVector3d a, PVector3d b) => new PVector3d(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
         public static PVector3d operator *(PVector3d a, PVector3d b) => new PVector3d(a.X * b.X, a.Y * b.Y, a.Z * b.Z);
         public static PVector3d operator *(PVector3d a, float b) => new PVector3d(a.X * b, a.Y * b, a.Z * b);
+        public static PVector3d operator *(float a, PVector3d b) => new PVector3d(a * b.X, a * b.Y, a * b.Z);
         public static PVector3d operator /(PVector3d a, float b) => new PVector3d(a.X / b, a.Y / b, a.Z / b);
+        public static PVector3d operator /(float a, PVector3d b) => new PVector3d(a / b.X, a / b.Y, a / b.Z);
         public static PVector3d operator /(PVector3d a, PVector3d b) => new PVector3d(a.X / b.X, a.Y / b.Y, a.Z / b.Z);
     }
 

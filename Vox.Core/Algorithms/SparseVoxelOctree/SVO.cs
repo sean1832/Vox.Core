@@ -14,7 +14,7 @@ namespace Vox.Core.Algorithms.SparseVoxelOctree
         private readonly int _maxDepth;
         private readonly PVector3d _rootSize;
         private readonly bool _isSolid;
-        private readonly Intersection _intersector;
+        private readonly NodeIntersection _intersector;
         private readonly BoundingVolumeHierarchy.BVH? _bvh;
 
         public SVO(int maxDepth, PVector3d rootSize, bool isSolid)
@@ -22,7 +22,7 @@ namespace Vox.Core.Algorithms.SparseVoxelOctree
             _maxDepth = maxDepth;
             _rootSize = rootSize;
             _isSolid = isSolid;
-            _intersector = new Intersection();
+            _intersector = new NodeIntersection();
         }
 
         public SVO(int maxDepth, PVector3d rootSize, bool isSolid, BoundingVolumeHierarchy.BVH bvh)
@@ -31,13 +31,13 @@ namespace Vox.Core.Algorithms.SparseVoxelOctree
             _rootSize = rootSize;
             _isSolid = isSolid;
             _bvh = bvh;
-            _intersector = new Intersection(bvh);
+            _intersector = new NodeIntersection(bvh);
         }
 
         private VoxelState GetState(PBoundingBox nodeBounds, PMesh mesh, bool isSolid)
         {
 
-            if (_intersector.IsNodeIntersect(nodeBounds, mesh))
+            if (_intersector.IsNodeIntersectSVO(nodeBounds, mesh))
             {
                 return VoxelState.Intersecting;
             }
@@ -52,7 +52,7 @@ namespace Vox.Core.Algorithms.SparseVoxelOctree
 
         private VoxelState GetStateBVH(PBoundingBox nodeBounds, PMesh mesh, bool isSolid)
         {
-            if (_intersector.IsNodeIntersect(nodeBounds))
+            if (_intersector.IsNodeIntersectBVH(nodeBounds))
             {
                 return VoxelState.Intersecting;
             }

@@ -34,6 +34,24 @@ namespace Vox.Core.Algorithms.SpatialHashing
                 return hash;
             }
         }
+
+        // Hash function to map a PVector3d to an integer key
+        public int Hash(float x, float y, float z)
+        {
+            int fX = (int)Math.Floor(x / _cellSize.X);
+            int fY = (int)Math.Floor(y / _cellSize.Y);
+            int fZ = (int)Math.Floor(z / _cellSize.Z);
+
+            // Combine the coordinates into a single hash
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 31 + fX;
+                hash = hash * 31 + fY;
+                hash = hash * 31 + fZ;
+                return hash;
+            }
+        }
     }
 
 }

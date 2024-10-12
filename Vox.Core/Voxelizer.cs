@@ -5,14 +5,12 @@ using System.Linq;
 using Vox.Core.Algorithms.BoundingVolumeHierarchy;
 using Vox.Core.Algorithms.SparseVoxelOctree;
 using Vox.Core.DataModels;
+using Vox.Core.Voxelization;
 
 namespace Vox.Core
 {
-    public class Voxelizer
+    public static class Voxelizer
     {
-        public Voxelizer()
-        {
-        }
 
         /// <summary>
         /// Voxelize the mesh using the Sparse Voxel Octree algorithm
@@ -22,7 +20,7 @@ namespace Vox.Core
         /// <param name="isSolid">Infill interior of a mesh</param>
         /// <param name="voxelScale">Scale factor for each voxel</param>
         /// <returns>Voxels</returns>
-        public List<Voxel> VoxelizeSVO(PMesh mesh, int maxDepth, bool isSolid, PVector3d voxelScale)
+        public static List<Voxel> VoxelizeSVO(PMesh mesh, int maxDepth, bool isSolid, PVector3d voxelScale)
         {
             mesh.ComputeTriangleBounds(); // Precompute triangle bounds
             PBoundingBox bBox = mesh.GetBoundingBox().ToScale(voxelScale);
@@ -43,7 +41,7 @@ namespace Vox.Core
         /// <param name="isSolid">Infill interior of a mesh</param>
         /// <param name="voxelScale">Scale factor for each voxel</param>
         /// <returns>Voxels</returns>
-        public List<Voxel> VoxelizeSVO(BVH bvh, int maxDepth, bool isSolid, PVector3d voxelScale)
+        public static List<Voxel> VoxelizeSVO(BVH bvh, int maxDepth, bool isSolid, PVector3d voxelScale)
         {
             // Calculate the mesh's bounding box, use cubic bounding box as the root node
             PBoundingBox bBox = bvh.Mesh.GetBoundingBox().ToScale(voxelScale);
@@ -58,12 +56,10 @@ namespace Vox.Core
             return voxels.ToList();
         }
 
-        public List<Voxel> VoxelizeSH(PMesh mesh, PVector3d voxelSize)
+        public static List<Voxel> VoxelizeSH(PMesh mesh, PVector3d voxelSize)
         {
-            PBoundingBox bBox = mesh.GetBoundingBox();
-            mesh.ComputeTriangleBounds(); // precompute triangle bounds
-
-            throw new NotImplementedException();
+            SHVoxelizer voxelizer = new SHVoxelizer(voxelSize);
+            return voxelizer.Voxelize(mesh);
         }
 
 
@@ -73,7 +69,7 @@ namespace Vox.Core
         /// <param name="mesh">Mesh to voxelize</param>
         /// <param name="gridSize">Voxel field size</param>
         /// <returns>Voxels</returns>
-        public List<Voxel> VoxelizeSDF(PMesh mesh, PVector3d gridSize)
+        public static List<Voxel> VoxelizeSDF(PMesh mesh, PVector3d gridSize)
         {
             PBoundingBox bBox = mesh.GetBoundingBox().ToCubic();
             mesh.ComputeTriangleBounds(); // precompute triangle bounds
