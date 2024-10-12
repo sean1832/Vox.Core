@@ -9,69 +9,6 @@ namespace Vox.Core.Meshing
 {
     internal class FaceCullingMesher: BaseMesher
     {
-        public PMesh Generate(List<Voxel> voxels)
-        {
-            float cellSize = voxels.First().Size.Min(); // Get the minimum size of the voxels
-            // Initialize the spatial hasher
-            var hasher = new SpatialHasher(cellSize);
-            var spatialHash = new Dictionary<int, List<Voxel>>();
-
-            // Populate the spatial hash with voxels
-            foreach (var voxel in voxels)
-            {
-                int hash = hasher.Hash(voxel.Position);
-                if (!spatialHash.ContainsKey(hash))
-                {
-                    spatialHash[hash] = new List<Voxel>();
-                }
-                spatialHash[hash].Add(voxel);
-            }
-
-            List<PVector3d> vertices = new List<PVector3d>();
-            List<int[]> faces = new List<int[]>();
-
-            // iterate over each voxel, generate faces if no neighbor exists
-            foreach (var voxel in voxels)
-            {
-                foreach (var direction in Directions)
-                {
-                    PVector3d neighborOffset = direction * voxel.Size;
-                    PVector3d neighborPosition = voxel.Position + neighborOffset;
-
-                    int neighborHash = hasher.Hash(neighborPosition);
-
-                    // check if there is a voxel in neighbor cell
-                    bool neighborExist = false;
-                    if (spatialHash.ContainsKey(neighborHash))
-                    {
-                        foreach (var neighbor in spatialHash[neighborHash])
-                        {
-                            // Check for exact adjacency based on voxel size and direction
-                            if (IsAdjacent(voxel.Position, voxel.Size, neighbor.Position, neighbor.Size, direction))
-                            {
-                                neighborExist = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!neighborExist)
-                    {
-                        MakeFace(voxel.Position, direction, vertices, faces, voxel.Size);
-                    }
-                }
-            }
-
-            if (vertices.Count <= 0 || faces.Count <= 0)
-            {
-                throw new InvalidOperationException("Vertices or Triangle failed to generate.");
-            }
-
-            PMesh mesh = new PMesh(vertices, faces);
-            return mesh;
-        }
-
-
         public override PMesh GenerateMesh(List<PVector3d> positions, List<PVector3d> voxelSizes)
         {
             if (positions.Count != voxelSizes.Count)
