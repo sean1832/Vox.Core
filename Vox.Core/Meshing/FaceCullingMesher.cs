@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Vox.Core.Algorithms.SpatialHashing;
 using Vox.Core.DataModels;
 
 namespace Vox.Core.Meshing

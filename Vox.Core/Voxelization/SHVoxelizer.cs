@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Vox.Core.Algorithms.Collision;
-using Vox.Core.Algorithms.SpatialHashing;
 using Vox.Core.DataModels;
 
 namespace Vox.Core.Voxelization
