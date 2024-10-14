@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Vox.Core.Algorithms.BoundingVolumeHierarchy;
 using Vox.Core.Algorithms.SparseVoxelOctree;
@@ -48,6 +49,18 @@ namespace Vox.Core
         {
             SHVoxelizer voxelizer = new SHVoxelizer(voxelSize);
             return voxelizer.Voxelize(mesh);
+        }
+
+        /// <summary>
+        /// Voxelize the mesh using Morton Code algorithm. Use this for mesh that update frequently.
+        /// </summary>
+        /// <param name="mesh"></param>
+        /// <param name="voxelSize"></param>
+        /// <returns></returns>
+        public static List<Voxel> VoxelizeMorton(PMesh mesh, PVector3d voxelSize)
+        {
+            MortonVoxelizer voxelizer = new MortonVoxelizer(voxelSize, mesh);
+            return voxelizer.Voxelize();
         }
 
 
