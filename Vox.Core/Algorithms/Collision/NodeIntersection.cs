@@ -92,7 +92,7 @@ namespace Vox.Core.Algorithms.Collision
             }
         }
 
-        public bool IsFullyInside(PBoundingBox nodeBounds, PMesh mesh)
+        public bool IsFullyInsideBVH(PBoundingBox nodeBounds, PMesh mesh)
         {
             var corners = nodeBounds.Corners;
 
@@ -114,10 +114,56 @@ namespace Vox.Core.Algorithms.Collision
             return true;
         }
 
+        public bool IsFullyInsideSVO(PBoundingBox nodeBounds, PMesh mesh)
+        {
+            var corners = nodeBounds.Corners;
+
+            foreach (var corner in corners)
+            {
+                if (!IsPointInsideMesh(corner, mesh))
+                {
+                    // If any corner is outside, the node is not fully inside
+                    return false;
+                }
+            }
+
+            // Additionally, ensure the node does not intersect the mesh surface
+            if (IsNodeIntersectSVO(nodeBounds, mesh))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool IsPointInsideMesh(PVector3d point, PMesh mesh)
+        {
+            PVector3d rayDirection = new PVector3d(1, 0.5f, 0.25f); // Arbitrary direction
+            int intersections = 0;
+            foreach (int[] face in mesh.Faces)
+            {
+                var v0 = mesh.Vertices[face[0]];
+                var v1 = mesh.Vertices[face[1]];
+                var v2 = mesh.Vertices[face[2]];
+
+                if (RayCollision.RayIntersectsTriangle(point, rayDirection, v0, v1, v2))
+                {
+                    intersections++;
+                }
+            }
+
+            // Point is inside if intersections are odd
+            return (intersections % 2) == 1;
+        }
+
         private bool IsPointInsideMesh(PVector3d point)
         {
             // Use a ray casting method optimized with BVH
             PVector3d rayDirection = new PVector3d(1, 0.5f, 0.25f); // Arbitrary direction
+            if (_bvh == null)
+            {
+                throw new InvalidOperationException($"{nameof(BoundingVolumeHierarchy.BVH)} not initialized!");
+            }
             int intersections = CountRayIntersections(point, rayDirection, _bvh.Root);
 
             // Point is inside if intersections are odd

@@ -42,7 +42,7 @@ namespace Vox.Core.Algorithms.SparseVoxelOctree
                 return VoxelState.Intersecting;
             }
 
-            if (isSolid && _intersector.IsFullyInside(nodeBounds, mesh))
+            if (isSolid && _intersector.IsFullyInsideSVO(nodeBounds, mesh))
             {
                 return VoxelState.Inside;
             }
@@ -57,7 +57,7 @@ namespace Vox.Core.Algorithms.SparseVoxelOctree
                 return VoxelState.Intersecting;
             }
 
-            if (isSolid && _intersector.IsFullyInside(nodeBounds, mesh))
+            if (isSolid && _intersector.IsFullyInsideBVH(nodeBounds, mesh))
             {
                 return VoxelState.Inside;
             }
