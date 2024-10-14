@@ -7,7 +7,10 @@ namespace Vox.Core.Meshing
 {
     internal class NaiveMesher: BaseMesher
     {
-        public override PMesh GenerateMesh(List<PVector3d> positions, List<PVector3d> voxelSizes, CoordinateSystem coordinateSystem = CoordinateSystem.RightHanded)
+        public NaiveMesher(CordSystem cordSystem) : base(cordSystem)
+        {
+        }
+        public override PMesh GenerateMesh(List<PVector3d> positions, List<PVector3d> voxelSizes)
         {
             if (positions.Count != voxelSizes.Count)
             {
@@ -26,7 +29,7 @@ namespace Vox.Core.Meshing
                 // Generate faces for all six sides of the voxel
                 foreach (var direction in Directions)
                 {
-                    MakeFace(position, direction, vertices, faces, voxelSize, isQuad:true, coordinateSystem: coordinateSystem);
+                    MakeFace(position, direction, vertices, faces, voxelSize, isQuad:true);
                 }
             }
 
@@ -40,7 +43,7 @@ namespace Vox.Core.Meshing
             return new PMesh(vertices, faces);
         }
 
-        public List<PMesh> GenerateMeshes(List<PVector3d> positions, List<PVector3d> voxelSizes, CoordinateSystem coordinateSystem = CoordinateSystem.RightHanded)
+        public List<PMesh> GenerateMeshes(List<PVector3d> positions, List<PVector3d> voxelSizes)
         {
             if (positions.Count != voxelSizes.Count)
             {
@@ -55,7 +58,7 @@ namespace Vox.Core.Meshing
                 var position = positions[i];
                 var voxelSize = voxelSizes[i];
 
-                PMesh mesh = MakeCube(position, voxelSize, coordinateSystem);
+                PMesh mesh = MakeCube(position, voxelSize);
 
                 // Add the mesh to the list
                 meshes.Add(mesh);

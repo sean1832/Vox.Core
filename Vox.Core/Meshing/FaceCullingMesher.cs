@@ -9,7 +9,11 @@ namespace Vox.Core.Meshing
 {
     internal class FaceCullingMesher: BaseMesher
     {
-        public override PMesh GenerateMesh(List<PVector3d> positions, List<PVector3d> voxelSizes, CoordinateSystem coordinateSystem = CoordinateSystem.RightHanded)
+        public FaceCullingMesher(CordSystem cordSystem) : base(cordSystem)
+        {
+        }
+
+        public override PMesh GenerateMesh(List<PVector3d> positions, List<PVector3d> voxelSizes)
         {
             if (positions.Count != voxelSizes.Count)
             {
@@ -36,7 +40,7 @@ namespace Vox.Core.Meshing
                     // if the neighbor does not exist, make a face
                     if (!GetNeighbor(position, direction, voxelSize, voxelMap, out _))
                     {
-                        MakeFace(position, direction, vertices, faces, voxelSize, isQuad:true, coordinateSystem: coordinateSystem);
+                        MakeFace(position, direction, vertices, faces, voxelSize, isQuad:true);
                     }
                 }
             }

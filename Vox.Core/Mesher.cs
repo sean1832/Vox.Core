@@ -20,15 +20,15 @@ namespace Vox.Core
 
     public static class Mesher
     {
-        public static List<PMesh> Generate(MeshingAlgorithm algorithm, List<PVector3d> positions, List<PVector3d> voxelSizes)
+        public static List<PMesh> Generate(MeshingAlgorithm algorithm, List<PVector3d> positions, List<PVector3d> voxelSizes, CordSystem cordSystem = CordSystem.RightHanded)
         {
             switch (algorithm)
             {
                 case MeshingAlgorithm.Naive:
-                    NaiveMesher naiveMesher = new NaiveMesher();
+                    NaiveMesher naiveMesher = new NaiveMesher(cordSystem);
                     return naiveMesher.GenerateMeshes(positions, voxelSizes);
                 case MeshingAlgorithm.FaceCulling:
-                    FaceCullingMesher faceCullingMesher = new FaceCullingMesher();
+                    FaceCullingMesher faceCullingMesher = new FaceCullingMesher(cordSystem);
                     return new List<PMesh>() { faceCullingMesher.GenerateMesh(positions, voxelSizes) };
                 case MeshingAlgorithm.MarchingCubes:
                     throw new NotImplementedException($"Algorithm not implemented: {nameof(MeshingAlgorithm.MarchingCubes)}");
