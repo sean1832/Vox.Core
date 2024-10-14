@@ -13,7 +13,7 @@ namespace Vox.Core
     {
 
         /// <summary>
-        /// Voxelize the mesh using the Sparse Voxel Octree algorithm
+        /// Voxelize the mesh using the Sparse Voxel Octree algorithm. Use this for static mesh.
         /// </summary>
         /// <param name="mesh">Mesh to voxelize</param>
         /// <param name="maxDepth">Maximum subdivision level (resolution)</param>
@@ -22,19 +22,11 @@ namespace Vox.Core
         /// <returns>Voxels</returns>
         public static List<Voxel> VoxelizeSVO(PMesh mesh, int maxDepth, bool isSolid, PVector3d voxelScale)
         {
-            mesh.ComputeTriangleBounds(); // Precompute triangle bounds
-            PBoundingBox bBox = mesh.GetBoundingBox().ToScale(voxelScale);
-            OctreeNode rootNode = new OctreeNode(bBox);
-            SVO svo = new SVO(maxDepth, rootNode.Bounds.Size, isSolid);
-            svo.Build(rootNode, mesh);
-
-            ConcurrentBag<Voxel> voxels = new ConcurrentBag<Voxel>();
-            svo.Collect(rootNode, voxels);
-            return voxels.ToList();
+            return SVOVoxelizer.Voxelize(mesh, maxDepth, isSolid, voxelScale);
         }
 
         /// <summary>
-        /// Voxelize the mesh using the Sparse Voxel Octree algorithm with precomputed BVH data
+        /// Voxelize the mesh using the Sparse Voxel Octree algorithm with precomputed BVH data. Use this for static mesh.
         /// </summary>
         /// <param name="bvh">Precomputed BVH data</param>
         /// <param name="maxDepth">Maximum subdivision level (resolution)</param>
@@ -43,19 +35,15 @@ namespace Vox.Core
         /// <returns>Voxels</returns>
         public static List<Voxel> VoxelizeSVO(BVH bvh, int maxDepth, bool isSolid, PVector3d voxelScale)
         {
-            // Calculate the mesh's bounding box, use cubic bounding box as the root node
-            PBoundingBox bBox = bvh.Mesh.GetBoundingBox().ToScale(voxelScale);
-
-            OctreeNode rootNode = new OctreeNode(bBox);
-            SVO svo = new SVO(maxDepth, rootNode.Bounds.Size, isSolid, bvh);
-            svo.Build(rootNode, bvh.Mesh);
-
-            ConcurrentBag<Voxel> voxels = new ConcurrentBag<Voxel>();
-            svo.Collect(rootNode, voxels);
-
-            return voxels.ToList();
+            return SVOVoxelizer.Voxelize(bvh, maxDepth, isSolid, voxelScale);
         }
 
+        /// <summary>
+        /// Voxelize the mesh using Spatial Hashing algorithm. Use this for mesh that update frequently.
+        /// </summary>
+        /// <param name="mesh">Mesh to voxelize</param>
+        /// <param name="voxelSize">Size of each voxel</param>
+        /// <returns>Voxels</returns>
         public static List<Voxel> VoxelizeSH(PMesh mesh, PVector3d voxelSize)
         {
             SHVoxelizer voxelizer = new SHVoxelizer(voxelSize);
