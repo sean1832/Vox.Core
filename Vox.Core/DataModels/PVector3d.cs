@@ -129,6 +129,13 @@ namespace Vox.Core.DataModels
             return false;
         }
 
+        public static bool Equals(PVector3d a, PVector3d b)
+        {
+            return Math.Abs(a.X - b.X) < Tolerance &&
+                   Math.Abs(a.Y - b.Y) < Tolerance &&
+                   Math.Abs(a.Z - b.Z) < Tolerance;
+        }
+
         public override int GetHashCode()
         {
             unchecked

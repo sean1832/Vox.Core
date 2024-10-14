@@ -9,68 +9,34 @@ namespace Vox.Core.Meshing
 {
     internal class FaceCullingMesher: BaseMesher
     {
-        public override PMesh GenerateMesh(List<PVector3d> positions, List<PVector3d> voxelSizes)
+        public override PMesh GenerateMesh(List<PVector3d> positions, List<PVector3d> voxelSizes, CoordinateSystem coordinateSystem = CoordinateSystem.RightHanded)
         {
             if (positions.Count != voxelSizes.Count)
             {
                 throw new ArgumentException("Positions and voxelSizes must have the same length.");
             }
-            float cellSize = voxelSizes.First().Min(); // Get the minimum size of the voxels
-            // Initialize the spatial hasher
-            var hasher = new SpatialHasher(cellSize);
-            var spatialHash = new Dictionary<int, List<(PVector3d, PVector3d)>>();
-
-            // Populate the spatial hash with positions and voxelSizes
+            // Create a dictionary or spatial hash to quickly check for neighbors
+            Dictionary<PVector3d, PVector3d> voxelMap = new Dictionary<PVector3d, PVector3d>();
             for (int i = 0; i < positions.Count; i++)
             {
-                var position = positions[i];
-                var voxelSize = voxelSizes[i];
-                int hash = hasher.Hash(position);
-
-                if (!spatialHash.ContainsKey(hash))
-                {
-                    spatialHash[hash] = new List<(PVector3d, PVector3d)>();
-                }
-                spatialHash[hash].Add((position, voxelSize));
+                voxelMap[positions[i]] = voxelSizes[i];
             }
 
             List<PVector3d> vertices = new List<PVector3d>();
             List<int[]> faces = new List<int[]>();
 
-            // Iterate over each voxel and generate faces if no neighbor is found
             for (int i = 0; i < positions.Count; i++)
             {
                 var position = positions[i];
                 var voxelSize = voxelSizes[i];
 
+                // Generate faces for all six sides of the voxel
                 foreach (var direction in Directions)
                 {
-                    // Element-wise multiplication of direction and voxel size
-                    PVector3d neighborOffset = direction * voxelSize;
-                    PVector3d neighborPosition = position + neighborOffset;
-
-                    int neighborHash = hasher.Hash(neighborPosition);
-
-                    // Check if there's a voxel in the neighboring cell
-                    bool neighborExists = false;
-                    if (spatialHash.ContainsKey(neighborHash))
+                    // if the neighbor does not exist, make a face
+                    if (!GetNeighbor(position, direction, voxelSize, voxelMap, out _))
                     {
-                        // Check if any voxel in the neighboring cell actually overlaps
-                        foreach (var (neighborPos, neighborSize) in spatialHash[neighborHash])
-                        {
-                            // Check for exact adjacency based on voxel size and direction
-                            if (IsAdjacent(position, voxelSize, neighborPos, neighborSize, direction))
-                            {
-                                neighborExists = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    // If no neighbor is found, generate the face
-                    if (!neighborExists)
-                    {
-                        MakeFace(position, direction, vertices, faces, voxelSize);
+                        MakeFace(position, direction, vertices, faces, voxelSize, isQuad:true, coordinateSystem: coordinateSystem);
                     }
                 }
             }
@@ -85,27 +51,21 @@ namespace Vox.Core.Meshing
             return new PMesh(vertices, faces);
         }
 
-        private bool IsAdjacent(PVector3d pos1, PVector3d size1, PVector3d pos2, PVector3d size2, PVector3d direction)
+        private bool GetNeighbor(PVector3d position, PVector3d direction, PVector3d voxelSize, Dictionary<PVector3d, PVector3d> voxelMap, out PVector3d neighbor)
         {
-            // Check for adjacency along the axis of the direction vector
-            if (direction.X != 0)
+            PVector3d neighborPos = position + (direction * voxelSize);
+
+            // Adjust comparison to use a small tolerance for floating-point precision issues
+            foreach (var key in voxelMap.Keys)
             {
-                return Math.Abs(pos1.X + direction.X * size1.X - pos2.X) < size1.X + size2.X
-                       && Math.Abs(pos1.Y - pos2.Y) < (size1.Y + size2.Y) * 0.5
-                       && Math.Abs(pos1.Z - pos2.Z) < (size1.Z + size2.Z) * 0.5;
+                if (PVector3d.Equals(neighborPos, key))
+                {
+                    neighbor = key;
+                    return true;
+                }
             }
-            else if (direction.Y != 0)
-            {
-                return Math.Abs(pos1.Y + direction.Y * size1.Y - pos2.Y) < size1.Y + size2.Y
-                       && Math.Abs(pos1.X - pos2.X) < (size1.X + size2.X) * 0.5
-                       && Math.Abs(pos1.Z - pos2.Z) < (size1.Z + size2.Z) * 0.5;
-            }
-            else if (direction.Z != 0)
-            {
-                return Math.Abs(pos1.Z + direction.Z * size1.Z - pos2.Z) < size1.Z + size2.Z
-                       && Math.Abs(pos1.X - pos2.X) < (size1.X + size2.X) * 0.5
-                       && Math.Abs(pos1.Y - pos2.Y) < (size1.Y + size2.Y) * 0.5;
-            }
+
+            neighbor = PVector3d.Zero;
             return false;
         }
     }

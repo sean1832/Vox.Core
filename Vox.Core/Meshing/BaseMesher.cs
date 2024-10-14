@@ -6,9 +6,15 @@ using Vox.Core.DataModels;
 
 namespace Vox.Core.Meshing
 {
+    public enum CoordinateSystem
+    {
+        LeftHanded,
+        RightHanded
+    }
+
     internal abstract class BaseMesher
     {
-        public abstract PMesh GenerateMesh(List<PVector3d> positions, List<PVector3d> voxelSizes);
+        public abstract PMesh GenerateMesh(List<PVector3d> positions, List<PVector3d> voxelSizes, CoordinateSystem coordinateSystem = CoordinateSystem.RightHanded);
 
         /// <summary>
         /// Directions: Front, Back, Left, Right, Top, Bottom
@@ -23,14 +29,14 @@ namespace Vox.Core.Meshing
             new PVector3d(0, 0, -1)  // Bottom (Z-)
         };
 
-        protected PMesh MakeCube(PVector3d position, PVector3d voxelSize)
+        protected PMesh MakeCube(PVector3d position, PVector3d voxelSize, CoordinateSystem coordinateSystem)
         {
             List<PVector3d> vertices = new List<PVector3d>();
             List<int[]> triangles = new List<int[]>();
 
             foreach (var direction in Directions)
             {
-                MakeFace(position, direction, vertices, triangles, voxelSize);
+                MakeFace(position, direction, vertices, triangles, voxelSize, coordinateSystem);
             }
 
             // Validate that faces and vertices were generated
@@ -43,93 +49,98 @@ namespace Vox.Core.Meshing
         }
 
         protected void MakeFace(PVector3d position, PVector3d direction, List<PVector3d> vertices,
-            List<int[]> triangles, PVector3d voxelSize)
+            List<int[]> faces, PVector3d voxelSize, CoordinateSystem coordinateSystem, bool isQuad = false)
         {
             int vertexIndex = vertices.Count;
-            PVector3d[] faceVertices = MakeFaceVertices(position, direction, voxelSize);
+            PVector3d[] faceVertices = MakeFaceVertices(position, direction, voxelSize, coordinateSystem);
             vertices.AddRange(faceVertices);
 
-            // Determine the correct winding order based on the direction vector
-            if (direction.X != 0)
+            if (isQuad)
             {
-                // For X faces (Front and Back), use the original winding order for positive X and reverse for negative X
-                if (direction.X > 0)
-                {
-                    triangles.Add(new int[] { vertexIndex, vertexIndex + 1, vertexIndex + 2 });
-                    triangles.Add(new int[] { vertexIndex, vertexIndex + 2, vertexIndex + 3 });
-                }
-                else
-                {
-                    triangles.Add(new int[] { vertexIndex, vertexIndex + 2, vertexIndex + 1 });
-                    triangles.Add(new int[] { vertexIndex, vertexIndex + 3, vertexIndex + 2 });
-                }
+                faces.Add(new int[] { vertexIndex, vertexIndex + 1, vertexIndex + 2, vertexIndex + 3 });
             }
-            else if (direction.Y != 0)
+            else
             {
-                // For Y faces (Top and Bottom), use the original winding order for positive Y and reverse for negative Y
-                if (direction.Y > 0)
-                {
-                    // Bottom face (Y-)
-                    triangles.Add(new int[] { vertexIndex, vertexIndex + 2, vertexIndex + 1 });
-                    triangles.Add(new int[] { vertexIndex, vertexIndex + 3, vertexIndex + 2 });
-                    
-                }
-                else
-                {
-                    // Top face (Y+)
-                    triangles.Add(new int[] { vertexIndex, vertexIndex + 1, vertexIndex + 2 });
-                    triangles.Add(new int[] { vertexIndex, vertexIndex + 2, vertexIndex + 3 });
-                }
-            }
-            else if (direction.Z != 0)
-            {
-                // For Z faces (Top and Bottom), use the original winding order for positive Z and reverse for negative Z
-                if (direction.Z > 0)
-                {
-                    triangles.Add(new int[] { vertexIndex, vertexIndex + 1, vertexIndex + 2 });
-                    triangles.Add(new int[] { vertexIndex, vertexIndex + 2, vertexIndex + 3 });
-                }
-                else
-                {
-                    triangles.Add(new int[] { vertexIndex, vertexIndex + 2, vertexIndex + 1 });
-                    triangles.Add(new int[] { vertexIndex, vertexIndex + 3, vertexIndex + 2 });
-                }
+                faces.Add(new int[] { vertexIndex, vertexIndex + 1, vertexIndex + 2 });
+                faces.Add(new int[] { vertexIndex, vertexIndex + 2, vertexIndex + 3 });
             }
         }
 
-
-        private PVector3d[] MakeFaceVertices(PVector3d position, PVector3d direction, PVector3d voxelSize)
+        private PVector3d[] MakeFaceVertices(PVector3d position, PVector3d direction, PVector3d voxelSize, CoordinateSystem coordinateSystem)
         {
             PVector3d[] faceVertices = new PVector3d[4];
             PVector3d halfSize = voxelSize * 0.5f;
 
-            // depending on the direction, calculate the 4 corner vertices of the face
-            if (direction.X != 0) // X faces (Front, Back)
+            if (direction.X > 0) // Front face (X+)
             {
-                float sign = direction.X;
-                faceVertices[0] = position + new PVector3d(sign * halfSize.X, -halfSize.Y, -halfSize.Z);
-                faceVertices[1] = position + new PVector3d(sign * halfSize.X, halfSize.Y, -halfSize.Z);
-                faceVertices[2] = position + new PVector3d(sign * halfSize.X, halfSize.Y, halfSize.Z);
-                faceVertices[3] = position + new PVector3d(sign * halfSize.X, -halfSize.Y, halfSize.Z);
+                faceVertices[0] = position + new PVector3d(halfSize.X, -halfSize.Y, -halfSize.Z);
+                faceVertices[1] = position + new PVector3d(halfSize.X, halfSize.Y, -halfSize.Z);
+                faceVertices[2] = position + new PVector3d(halfSize.X, halfSize.Y, halfSize.Z);
+                faceVertices[3] = position + new PVector3d(halfSize.X, -halfSize.Y, halfSize.Z);
             }
-            else if (direction.Y != 0) // Y faces (Left, Right)
+            else if (direction.X < 0) // Back face (X-)
             {
-                float sign = direction.Y;
-                faceVertices[0] = position + new PVector3d(-halfSize.X, sign * halfSize.Y, -halfSize.Z);
-                faceVertices[1] = position + new PVector3d(halfSize.X, sign * halfSize.Y, -halfSize.Z);
-                faceVertices[2] = position + new PVector3d(halfSize.X, sign * halfSize.Y, halfSize.Z);
-                faceVertices[3] = position + new PVector3d(-halfSize.X, sign * halfSize.Y, halfSize.Z);
+                faceVertices[0] = position + new PVector3d(-halfSize.X, -halfSize.Y, halfSize.Z);
+                faceVertices[1] = position + new PVector3d(-halfSize.X, halfSize.Y, halfSize.Z);
+                faceVertices[2] = position + new PVector3d(-halfSize.X, halfSize.Y, -halfSize.Z);
+                faceVertices[3] = position + new PVector3d(-halfSize.X, -halfSize.Y, -halfSize.Z);
             }
-            else if (direction.Z != 0) // Z faces (Top, Bottom)
+            else if (direction.Y > 0) // Right face (Y+)
             {
-                float sign = direction.Z;
-                faceVertices[0] = position + new PVector3d(-halfSize.X, -halfSize.Y, sign * halfSize.Z);
-                faceVertices[1] = position + new PVector3d(halfSize.X, -halfSize.Y, sign * halfSize.Z);
-                faceVertices[2] = position + new PVector3d(halfSize.X, halfSize.Y, sign * halfSize.Z);
-                faceVertices[3] = position + new PVector3d(-halfSize.X, halfSize.Y, sign * halfSize.Z);
+                if (coordinateSystem == CoordinateSystem.RightHanded)
+                {
+                    faceVertices[0] = position + new PVector3d(-halfSize.X, halfSize.Y, -halfSize.Z);
+                    faceVertices[1] = position + new PVector3d(halfSize.X, halfSize.Y, -halfSize.Z);
+                    faceVertices[2] = position + new PVector3d(halfSize.X, halfSize.Y, halfSize.Z);
+                    faceVertices[3] = position + new PVector3d(-halfSize.X, halfSize.Y, halfSize.Z);
+                }
+                else
+                {
+                    // (Rhino uses left-handed coordinate system)
+                    // Reversed winding here to fix the Y+ face normal 
+                    faceVertices[0] = position + new PVector3d(halfSize.X, halfSize.Y, -halfSize.Z);
+                    faceVertices[1] = position + new PVector3d(-halfSize.X, halfSize.Y, -halfSize.Z);
+                    faceVertices[2] = position + new PVector3d(-halfSize.X, halfSize.Y, halfSize.Z);
+                    faceVertices[3] = position + new PVector3d(halfSize.X, halfSize.Y, halfSize.Z);
+                }
+                
+            }
+            else if (direction.Y < 0) // Left face (Y-)
+            {
+                if (coordinateSystem == CoordinateSystem.RightHanded)
+                {
+                    faceVertices[0] = position + new PVector3d(halfSize.X, -halfSize.Y, -halfSize.Z);
+                    faceVertices[1] = position + new PVector3d(-halfSize.X, -halfSize.Y, -halfSize.Z);
+                    faceVertices[2] = position + new PVector3d(-halfSize.X, -halfSize.Y, halfSize.Z);
+                    faceVertices[3] = position + new PVector3d(halfSize.X, -halfSize.Y, halfSize.Z);
+                }
+                else
+                {
+                    // Correct winding for Y- face normal
+                    faceVertices[0] = position + new PVector3d(-halfSize.X, -halfSize.Y, -halfSize.Z);
+                    faceVertices[1] = position + new PVector3d(halfSize.X, -halfSize.Y, -halfSize.Z);
+                    faceVertices[2] = position + new PVector3d(halfSize.X, -halfSize.Y, halfSize.Z);
+                    faceVertices[3] = position + new PVector3d(-halfSize.X, -halfSize.Y, halfSize.Z);
+                }
+                
+            }
+            else if (direction.Z > 0) // Top face (Z+)
+            {
+                faceVertices[0] = position + new PVector3d(-halfSize.X, -halfSize.Y, halfSize.Z);
+                faceVertices[1] = position + new PVector3d(halfSize.X, -halfSize.Y, halfSize.Z);
+                faceVertices[2] = position + new PVector3d(halfSize.X, halfSize.Y, halfSize.Z);
+                faceVertices[3] = position + new PVector3d(-halfSize.X, halfSize.Y, halfSize.Z);
+            }
+            else if (direction.Z < 0) // Bottom face (Z-)
+            {
+                faceVertices[0] = position + new PVector3d(-halfSize.X, halfSize.Y, -halfSize.Z);
+                faceVertices[1] = position + new PVector3d(halfSize.X, halfSize.Y, -halfSize.Z);
+                faceVertices[2] = position + new PVector3d(halfSize.X, -halfSize.Y, -halfSize.Z);
+                faceVertices[3] = position + new PVector3d(-halfSize.X, -halfSize.Y, -halfSize.Z);
             }
 
             return faceVertices;
         }
+
     }
 }

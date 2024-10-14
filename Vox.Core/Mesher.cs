@@ -18,9 +18,9 @@ namespace Vox.Core
         Greedy
     }
 
-    public class Mesher
+    public static class Mesher
     {
-        public List<PMesh> Generate(MeshingAlgorithm algorithm, List<PVector3d> positions, List<PVector3d> voxelSizes)
+        public static List<PMesh> Generate(MeshingAlgorithm algorithm, List<PVector3d> positions, List<PVector3d> voxelSizes)
         {
             switch (algorithm)
             {
